@@ -18,30 +18,42 @@
     </nav>
     <div class="container-fluid">
         <div class="row">
+            
             <nav class="col-md-2 sidebar d-md-block bg-light sidebar">
                 <div class="sidebar-sticky">
-                    <h6 class="sidebar-heading d-flex mt-2">
+                    <h6 class="sidebar-heading d-flex mt-2 pt-2">
                         Main Country:
                     </h6>
-                    <div id ="countriesList"></div>
-                    <!-- Qui ci andrà la lista di tutti i paesi -->
+                    <!-- Countries Radio List -->
+                    <div id ="countriesList" class="px-3"></div>
                 </div>
             </nav>  
             
             <div class="col container"> 
                 
+                <!-- TODO: Da rivedere, forse è meglio mettere lo switch dei tab nella navbar -->
                 <ul class="nav nav-tabs mt-2 border-bottom border-dark pb-1" role="tablist">
                     <li class="active nav-item"><a data-toggle="tab" class="text-dark px-2 nav-link" href="#gender" role="tab" aria-controls="gender" aria-selected="true">Gender Study</a></li>
                     <li class="nav-item"><a data-toggle="tab" class="text-dark px-2 nav-link" href="#age" role="tab" aria-controls="age" aria-selected="false">Age Study</a></li>
                 </ul>
 
                 <div class="tab-content">
-                    <div id="gender" class="tab-pane fade in active mt-2" role="tabpanel" aria-labelledby="gender-tab">
+                    
+                    <!-- STUDIO RELATIVO AL GENERE-->
+                    <div id="gender" class="tab-pane fade in active mt-2 container " role="tabpanel" aria-labelledby="gender-tab">
                       <h3>Gender Study</h3>
-                      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                      <div class="row">
+                          <div id="act_scatt" class="col"></div>
+                          <div id="occ_scatt" class="col"></div>
+                      </div> 
+                      <div class="row"> 
+                        <div id="occ_lineChart" class="col"></div>
+                      </div>
                     </div>
+                    
+                    <!-- STUDIO RELATIVO ALLE FASCE DI ETA' -->
                     <div id="age" class="tab-pane fade mt-2" role="tabpanel" aria-labelledby="age-tab">
-                      <h3>Age Study</h3>
+                      <h3>Age Study</h3> 
                       <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
                     </div>
                 </div>
@@ -55,7 +67,7 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
-    <!-- My functions javascript -->
+    <!-- Funzioni D3 -->
     <script type="application/javascript" src="script.js?version=1"></script>
 </body>
 </html>

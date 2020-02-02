@@ -2,17 +2,18 @@ var data;
 var countries = [];
 var activities = [];
 var occupations = [];
-var w, h= 200;
 var selectedYear = 0;
+var h= 200;
+var w= 300;
 var firstCountry = "";
 var secondCountry = "";
+var xScale;
 
 var actScatt = d3.select("#act_scatt")
                 .append("svg")
-                .attr("width", w)
                 .attr("height", h)
-
-       
+                .attr("class", "frame")
+                .attr("id", "act_scattSvg");
                 
 
 /**
@@ -40,6 +41,15 @@ function radioList() {
 }
 
 
+function scaling() {
+
+    xScale = d3.scaleLinear()
+        .domain([0, d3.max(data, function (d) {
+            return d.INDIC_SE;
+        })])
+        .range([0, 180]);
+
+}
 
 
 function genderStudyCharts() {
@@ -50,6 +60,8 @@ function genderStudyCharts() {
 
     // PROVA PER VEDERE SE FUNZIONA, METTENDO COME PAESE 1=> ITALIA
     firstCountry = "Italy";
+    selectedYear = 2002;
+    var filtData = filterData(data, firstCountry, "allActivities", "Total", "both", "Total", false);
 
     actScatt.append("rect")
         .attr("x", 0)
@@ -58,30 +70,34 @@ function genderStudyCharts() {
         .attr("height", h);
 
     actScatt.selectAll("circle")
-        .data(data)
+        .data(filtData)
         .enter()
         .append("circle")
         .attr("cx", function(d) {
-            return aScale(d.a);
+            if (d.SEX == "Males") {
+                //TODO: fare in modo che venga passato nelle x e nelle y il genere corretto
+            }
+            return xScale(d.INDIC_SE);
         })
         .attr("cy", function(d) {
-            return h-bScale(d.b);
+            d = filterData(d, firstCountry, "allActivities", "Total", "Males", "Total", false);
+            return h-xScale(d.INDIC_SE);
         })
         .attr("r", 4)
-
+        .attr("fill", "rgb(70, 130, 180)");
 }
 
 
 /**
  * Dato un dataset in input, viene effettuato un filtraggio in base ai parametri
  * desiderati
- * @param {Dataset da filtrare} dataset 
- * @param {Paese} country 
- * @param {Tipo di Attività} act 
- * @param {Occupazione} occ 
- * @param {Sesso} gender 
- * @param {Fascia d'età} age 
- * @param {Dati relativi a tutti gli anni} checkAllYears 
+ * @param {Array} dataset Dataset da filtrare
+ * @param {String} country Paese
+ * @param {String} act Tipo di Attività
+ * @param {String} occ Occupazione
+ * @param {String} gender Sesso
+ * @param {String} age Fascia d'età
+ * @param {Boolean} checkAllYears Dati relativi a tutti gli anni
  */
 function filterData(dataset, country, act, occ, gender, age, checkAllYears) {
 
@@ -470,6 +486,8 @@ d3.csv("data/earn_ses_monthly_1_Data.csv", function (error, csv) {
     })
     // console.log(data);
     radioList();
+    genderStudyCharts();
+    scaling();
 });
 
 

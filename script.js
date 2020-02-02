@@ -3,7 +3,9 @@ var countries = [];
 var activities = [];
 var occupations = [];
 var w, h= 200;
-var year = 0;
+var selectedYear = 0;
+var firstCountry = "";
+var secondCountry = "";
 
 var actScatt = d3.select("#act_scatt")
                 .append("svg")
@@ -32,12 +34,24 @@ function radioList() {
     .attr("class", "custom-control-label")
     .attr("for", function(d) { return d; })
     .text(function(d) { return d;});
+
+    // TEST
+    selectedYear = 2002;
+    filterData(data, "Italy", "Industry, construction and services (except public administration, defense, compulsory social security)",
+        "Managers", "Males", "Total", false);
     
 }
 
 
 function genderStudyCharts() {
     
+    // Li passerò il paese selezionato nella lista dei radio 
+    // Ci sarà un anno di default, ma può essere cambiato, quindi potrebbe
+    // prendere un parametro per vedere quale è selezionato
+
+    // PROVA PER VEDERE SE FUNZIONA, METTENDO COME PAESE 1=> ITALIA
+    firstCountry = "Italy";
+
     actScatt.append("rect")
         .attr("x", 0)
         .attr("y", 0)
@@ -60,6 +74,56 @@ function genderStudyCharts() {
 }
 
 
+
+function filterData(dataset, country, act, occ, gender, age, checkAllYears) {
+
+    var filtData = [];
+    var checkBothGender = false;
+
+    // Per il secondo tab ci dovrei mettere il filtro per tutti gli anni
+
+    if (gender === "Both")
+        checkBothGender = true;
+
+    dataset.forEach(function (d) {
+        
+        if ((d.GEO.trim() === country.trim()) && (d.ISCO08.trim() === occ.trim()) && (d.AGE.trim() === age.trim())) {
+            // devo selezionare entrambi i generi 
+            if ((checkBothGender == true) && (d.SEX !== "Total")) {
+                // devo selezionare tutti gli anni
+                if (checkAllYears) 
+                    filtData.push(d);
+                else {
+                    if (d.TIME == selectedYear) 
+                        filtData.push(d);
+                    else 
+                        return;
+                }
+            }
+            else {
+                // genere specifico
+                if ((checkBothGender == false) && (d.SEX === gender)){
+                    // devo selezionare tutti gli anni
+                    if (checkAllYears) 
+                        filtData.push(d);
+                    else {
+                        if (d.TIME == selectedYear) 
+                            filtData.push(d);
+                        else 
+                            return;
+                    }   
+                }
+                else 
+                    return;
+            }
+        }
+        else 
+            return;
+    });
+
+    console.log(filtData);
+    return filtData;
+}
 
 
 
@@ -88,10 +152,10 @@ d3.csv("data/earn_ses_monthly_1_Data.csv", function (error, csv) {
         nace= d.NACE_R2;
         isco= d.ISCO08;
         worktime= d.WORKTIME;
-        age= +d.AGE;
-        time= d.TIME;
+        age= d.AGE;
+        time= +d.TIME;
         indic_se= d.INDIC_SE;
-        value= d.Value;
+        value= +d.Value;
     })
     
     data = csv;    

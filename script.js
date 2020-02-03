@@ -3,18 +3,20 @@ var countries = [];
 var activities = [];
 var occupations = [];
 var selectedYear = 0;
-var h= 200;
-var w= 300;
+var h= 300;
+var w= 400;
 var firstCountry = "";
 var secondCountry = "";
 var xScale;
+var symbol = d3.symbol().size(50);
+var missingData = false;
 
-var actScatt = d3.select("#act_scatt")
-                .append("svg")
-                .attr("height", h)
-                .attr("class", "frame")
-                .attr("id", "act_scattSvg");
-                
+ var actScatt = d3.select("#act_scatt");
+//                 .append("svg")
+//                 .attr("height", h)
+//                 .attr("width", w)
+//                 .attr("class", "frame")
+//                 .attr("id", "act_scattSvg");
 
 /**
  * Crea una lista di input radio in base ai paesi presenti nel dataset
@@ -41,14 +43,24 @@ function radioList() {
 }
 
 
-function scaling() {
+function scaling(filtData) {
 
+    // TODO: Aggiustare un pò le scale per ottenere una visualizzazione migliore 
     xScale = d3.scaleLinear()
-        .domain([0, d3.max(data, function (d) {
-            return d.INDIC_SE;
+        .domain([d3.min(filtData, function(d) {
+            return d.Value;
+        }), d3.max(filtData, function (d) {
+            return d.Value;
         })])
-        .range([0, 180]);
+        .range([30, w-50]);
 
+    yScale = d3.scaleLinear()
+        .domain([d3.min(filtData, function(d) {
+            return d.Value;
+        }), d3.max(filtData, function(d) {
+            return d.Value;
+        })])
+        .range([h-40,50]);
 }
 
 
@@ -62,6 +74,10 @@ function genderStudyCharts() {
     firstCountry = "Italy";
     selectedYear = 2002;
     var filtData = filterData(data, firstCountry, "allActivities", "Total", "both", "Total", false);
+    
+    //TODO: mettere un alertbox quando ci sono dati non validi
+    removeInvalidData(filtData);
+    scaling(filtData);
 
     actScatt.append("rect")
         .attr("x", 0)
@@ -69,22 +85,37 @@ function genderStudyCharts() {
         .attr("width", w)
         .attr("height", h);
 
-    actScatt.selectAll("circle")
+    actScatt.selectAll(".dots")
         .data(filtData)
         .enter()
-        .append("circle")
-        .attr("cx", function(d) {
-            if (d.SEX == "Males") {
-                //TODO: fare in modo che venga passato nelle x e nelle y il genere corretto
-            }
-            return xScale(d.INDIC_SE);
-        })
-        .attr("cy", function(d) {
-            d = filterData(d, firstCountry, "allActivities", "Total", "Males", "Total", false);
-            return h-xScale(d.INDIC_SE);
-        })
-        .attr("r", 4)
-        .attr("fill", "rgb(70, 130, 180)");
+        .append("path")
+        .attr("d", symbol.type( function (d){
+            if (d.SEX == "Males")
+                return d3.symbolSquare;
+            else 
+                return d3.symbolCircle;
+        }))
+        .attr("transform", function(d) {
+            return "translate("+ xScale(d.Value) + ", "+ yScale(d.Value) + ") rotate(45)";
+        });
+}
+
+
+function removeInvalidData(filtData) {
+    
+    // Controllo di eventuali dati mancanti e rimozione di questi per una corretta visualizzazione dei charts
+     for(var i=0; i<filtData.length; i++) {
+        if (filtData[i].Value == ":") {
+            if (!missingData)
+                missingData = true;
+            filtData.splice(i,1);
+            i = -1;
+            continue;
+        }
+        else
+            continue;
+    }
+    return filtData;
 }
 
 
@@ -482,12 +513,11 @@ d3.csv("data/earn_ses_monthly_1_Data.csv", function (error, csv) {
 
         if (!occupations.includes(d.ISCO08)) 
         occupations.push(d.ISCO08);
-
+        
     })
     // console.log(data);
     radioList();
     genderStudyCharts();
-    scaling();
 });
 
 

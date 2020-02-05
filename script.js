@@ -3,20 +3,28 @@ var countries = [];
 var activities = [];
 var occupations = [];
 var selectedYear = 0;
-var h= 300;
-var w= 400;
+var margin = {top: 50, right: 50, bottom: 50, left: 70};
+var h= 550-margin.left -margin.right;
+var w= 550-margin.left -margin.right;
 var firstCountry = "";
 var secondCountry = "";
-var xScale;
+var xScale,
+    yScale,
+    xAxScale,
+    xAxis;
 var symbol = d3.symbol().size(50);
 var missingData = false;
 
- var actScatt = d3.select("#act_scatt");
-//                 .append("svg")
-//                 .attr("height", h)
-//                 .attr("width", w)
-//                 .attr("class", "frame")
-//                 .attr("id", "act_scattSvg");
+ var actScatt = d3.select("#activities")
+                .append("svg")
+                .attr("width", w + margin.right + margin.left)
+                .attr("height", h + margin.top + margin.bottom);
+
+var actChart = actScatt.append("g")
+                .attr("transform", "translate(" + margin.left+ "," + margin.top + ")")
+                .attr("width", w)
+                .attr("height", h)
+                .attr("class", "main");
 
 /**
  * Crea una lista di input radio in base ai paesi presenti nel dataset
@@ -45,22 +53,34 @@ function radioList() {
 
 function scaling(filtData) {
 
+    var values = [];
+    filtData.forEach(function(d) {
+        values.push(d.Value);
+    });
+    values.sort(function(a, b){return a - b});
+
+    var min_xy = +d3.min(filtData, function(d) {return d.Value;});
+    var max_xy = +d3.max(filtData, function(d) {return d.Value;});
+    var avg_xy = +(max_xy - min_xy)/filtData.length;
+
     // TODO: Aggiustare un pò le scale per ottenere una visualizzazione migliore 
     xScale = d3.scaleLinear()
-        .domain([d3.min(filtData, function(d) {
-            return d.Value;
-        }), d3.max(filtData, function (d) {
-            return d.Value;
-        })])
-        .range([30, w-50]);
+        .domain([min_xy-avg_xy, max_xy+avg_xy])
+        .range([0, w]);
 
     yScale = d3.scaleLinear()
-        .domain([d3.min(filtData, function(d) {
-            return d.Value;
-        }), d3.max(filtData, function(d) {
-            return d.Value;
-        })])
-        .range([h-40,50]);
+        .domain([min_xy-avg_xy, max_xy+avg_xy])
+        .range([h,0]);
+            
+    xAxis = d3.axisBottom()
+            .scale(xScale)
+            .ticks(values.length)
+
+    yAxis = d3.axisLeft()
+            .scale(yScale)
+            .ticks(values.length);
+
+    
 }
 
 
@@ -79,25 +99,89 @@ function genderStudyCharts() {
     removeInvalidData(filtData);
     scaling(filtData);
 
-    actScatt.append("rect")
-        .attr("x", 0)
-        .attr("y", 0)
-        .attr("width", w)
-        .attr("height", h);
+    actChart.append("g")
+            .attr("transform", "translate(0," + h + ")")
+            .attr("class", "x axis")
+            .call(xAxis);
+    
+    actChart.append("g")
+            .attr("transform", "translate(0,0)")
+            .attr("class", "y axis")
+            .call(yAxis);
 
-    actScatt.selectAll(".dots")
-        .data(filtData)
-        .enter()
-        .append("path")
-        .attr("d", symbol.type( function (d){
-            if (d.SEX == "Males")
-                return d3.symbolSquare;
-            else 
-                return d3.symbolCircle;
-        }))
-        .attr("transform", function(d) {
-            return "translate("+ xScale(d.Value) + ", "+ yScale(d.Value) + ") rotate(45)";
-        });
+    var clip = actChart.append("defs").append("clipPath")
+            .attr("id", "clip")
+            .append("rect")
+            .attr("id", "clip-rect")
+            .attr("x", "0")
+            .attr("y", "0")
+            .attr("width", w)
+            .attr("height", h);
+
+    actChart.append("g").attr("clip-path","url(#clip)").selectAll(".dots")
+            .data(filtData)
+            .enter()
+            .append("path")
+            .attr("d", symbol.type( function (d){
+                if (d.SEX == "Males")
+                    return d3.symbolSquare;
+                else 
+                    return d3.symbolCircle;
+            }))
+            .attr("transform", function(d) {
+                return "translate("+ xScale(d.Value) + ", "+ yScale(d.Value) + ") rotate(45)";
+            });
+
+
+
+
+
+
+
+
+
+
+
+
+    // d3.select("#xAxisActScatt")
+    //             .attr("transform", "translate("+margin.left+"," + (h+125) + ")")
+    //             .call(xAxis)
+    //             .append("text")
+    //             .attr("x", w)
+    //             .attr("y", -6)
+    //             .text("Males")
+
+    // var clip = d3.select("#act_scattSvg").append("defs").append("svg:clipPath")
+    //     .attr("id", "clip")
+    //     .append("svg:rect")
+    //     .attr("id", "clip-rect")
+    //     .attr("x", "0")
+    //     .attr("y", "0")
+    //     .attr('width', w)
+    //     .attr('height', h);
+
+    // actScatt.attr("clip-path", "url(#clip)");
+                
+    // actScatt.append("rect")
+    //     .attr("x", 50)
+    //     .attr("y", 50)
+    //     .attr("width", w+50)
+    //     .attr("height", h+50);
+
+
+    // actScatt.selectAll(".dots")
+    //     .data(filtData)
+    //     .enter()
+    //     .append("path")
+    //     .attr("d", symbol.type( function (d){
+    //         if (d.SEX == "Males")
+    //             return d3.symbolSquare;
+    //         else 
+    //             return d3.symbolCircle;
+    //     }))
+    //     .attr("transform", function(d) {
+    //         return "translate("+ xScale(d.Value) + ", "+ yScale(d.Value) + ") rotate(45)";
+    //     });
 }
 
 
@@ -498,7 +582,7 @@ d3.csv("data/earn_ses_monthly_1_Data.csv", function (error, csv) {
         age= d.AGE;
         time= +d.TIME;
         indic_se= d.INDIC_SE;
-        value= +d.Value;
+        value= d.Value.replace(".", "");
     })
     
     data = csv;    

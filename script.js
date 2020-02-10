@@ -4,18 +4,19 @@ var activities = [];
 var occupations = [];
 var selectedYear = 0;
 var margin = {top: 50, right: 50, bottom: 50, left: 70};
-var h= 550-margin.left -margin.right;
-var w= 550-margin.left -margin.right;
+var h= 660-margin.left -margin.right;
+var w= 660-margin.left -margin.right;
+
 var firstCountry = "";
 var secondCountry = "";
 var xScale,
     yScale,
-    xAxScale,
     xAxis;
+
 var symbol = d3.symbol().size(50);
 var missingData = false;
 
- var actScatt = d3.select("#activities")
+var actScatt = d3.select("#activities")
                 .append("svg")
                 .attr("width", w + margin.right + margin.left)
                 .attr("height", h + margin.top + margin.bottom);
@@ -25,6 +26,28 @@ var actChart = actScatt.append("g")
                 .attr("width", w)
                 .attr("height", h)
                 .attr("class", "main");
+
+var occScatt = d3.select("#occ_scatt")
+                .append("svg")
+                .attr("width", w + margin.right + margin.left)
+                .attr("height", h + margin.top + margin.bottom);
+
+var occChart = occScatt.append("g")
+                .attr("transform", "translate(" + margin.left+ "," + margin.top + ")")
+                .attr("width", w)
+                .attr("height", h)
+                .attr("class", "main");
+
+var occLineChart = d3.select("#occ_lineChart")
+                .append("svg")
+                .attr("width", w + margin.right + margin.left)
+                .attr("height", h + margin.top + margin.bottom);
+
+var occLineChart = occLineChart.append("g")
+                .attr("transform", "translate(" + margin.left+ "," + margin.top + ")")
+                .attr("width", w)
+                .attr("height", h)
+                .attr("class", "main lines");
 
 /**
  * Crea una lista di input radio in base ai paesi presenti nel dataset
@@ -51,19 +74,13 @@ function radioList() {
 }
 
 
-function scaling(filtData) {
+function scaling(dataset) {
 
-    var values = [];
-    filtData.forEach(function(d) {
-        values.push(d.Value);
-    });
-    values.sort(function(a, b){return a - b});
+    var min_xy = +d3.min(dataset, function(d) {return d.Value;});
+    var max_xy = +d3.max(dataset, function(d) {return d.Value;});
+    var avg_xy = +(max_xy - min_xy)/dataset.length;
 
-    var min_xy = +d3.min(filtData, function(d) {return d.Value;});
-    var max_xy = +d3.max(filtData, function(d) {return d.Value;});
-    var avg_xy = +(max_xy - min_xy)/filtData.length;
-
-    // TODO: Aggiustare un pò le scale per ottenere una visualizzazione migliore 
+    // TODO: Aggiustare un pò le scale per ottenere una visualizzazione migliore     
     xScale = d3.scaleLinear()
         .domain([min_xy-avg_xy, max_xy+avg_xy])
         .range([0, w]);
@@ -71,16 +88,22 @@ function scaling(filtData) {
     yScale = d3.scaleLinear()
         .domain([min_xy-avg_xy, max_xy+avg_xy])
         .range([h,0]);
+
+    //Per non avere troppi ticks negli assi
+    var ticksNumb;
+    if (dataset.length > 10)
+        ticksNumb = 10;
+    else 
+        ticksNumb = dataset.length;
             
     xAxis = d3.axisBottom()
             .scale(xScale)
-            .ticks(values.length)
+            .ticks(ticksNumb);
 
     yAxis = d3.axisLeft()
             .scale(yScale)
-            .ticks(values.length);
+            .ticks(ticksNumb);
 
-    
 }
 
 
@@ -93,12 +116,14 @@ function genderStudyCharts() {
     // PROVA PER VEDERE SE FUNZIONA, METTENDO COME PAESE 1=> ITALIA
     firstCountry = "Italy";
     selectedYear = 2002;
+    //Activities Chart
     var filtData = filterData(data, firstCountry, "allActivities", "Total", "both", "Total", false);
     
     //TODO: mettere un alertbox quando ci sono dati non validi
     removeInvalidData(filtData);
     scaling(filtData);
 
+    //ACTIVITIES Scatterplot
     actChart.append("g")
             .attr("transform", "translate(0," + h + ")")
             .attr("class", "x axis")
@@ -109,10 +134,10 @@ function genderStudyCharts() {
             .attr("class", "y axis")
             .call(yAxis);
 
-    var clip = actChart.append("defs").append("clipPath")
+    actChart.append("defs").append("clipPath")
             .attr("id", "clip")
             .append("rect")
-            .attr("id", "clip-rect")
+            .attr("class", "clip-rect")
             .attr("x", "0")
             .attr("y", "0")
             .attr("width", w)
@@ -132,56 +157,78 @@ function genderStudyCharts() {
                 return "translate("+ xScale(d.Value) + ", "+ yScale(d.Value) + ") rotate(45)";
             });
 
+    //Occupation's Chart -> Selected year
+    var filtDataOccupations = filterData(data, firstCountry, "Business economy", "allOccupations", "both", "Total", false);
+    removeInvalidData(filtDataOccupations);
+    scaling(filtDataOccupations);
+        
+
+    //OCCUPATIONS Scatterplot -> Selected Year
+    occChart.append("g")
+            .attr("transform", "translate(0," + h + ")")
+            .attr("class", "x axis")
+            .call(xAxis);
+    
+    occChart.append("g")
+            .attr("transform", "translate(0,0)")
+            .attr("class", "y axis")
+            .call(yAxis);
+
+    occChart.append("defs").append("clipPath")
+            .attr("id", "clip_occ_sel")
+            .append("rect")
+            .attr("class", "clip-rect")
+            .attr("x", "0")
+            .attr("y", "0")
+            .attr("width", w)
+            .attr("height", h);
+
+    occChart.append("g").attr("clip-path","url(#clip_occ_sel)").selectAll(".dots")
+            .data(filtDataOccupations)
+            .enter()
+            .append("path")
+            .attr("d", symbol.type( function (d){
+                if (d.SEX == "Males")
+                    return d3.symbolSquare;
+                else 
+                    return d3.symbolCircle;
+            }))
+            .attr("transform", function(d) {
+                return "translate("+ xScale(d.Value) + ", "+ yScale(d.Value) + ") rotate(45)";
+            });
 
 
+    //Occupation's LineChart 
+    var filtSingleOccData = filterData(data, firstCountry, "Business economy", "Managers", "both", "Total", true);
+    removeInvalidData(filtSingleOccData);
+    scaling(filtSingleOccData);
+        
+    var line = d3.line()
+        .x(function(d) {
+            return xScale(d.TIME);
+        })
+        .y(function(d) {
+            return yScale(d.Value);
+        });
+
+        //TODO: aggiungere lo scale delle x per gli anni,
+        //fare una variabile per gli anni
+
+    //OCCUPATIONS LineChart
+    occLineChart.append("g")
+        .attr("transform", "translate(0," + h + ")")
+        .attr("class", "x axis")
+        .call(xAxis);
+    
+    occLineChart.append("g")
+        .attr("transform", "translate(0,0)")
+        .attr("class", "y axis")
+        .call(yAxis);
+
+    occLineChart.append("path")
+        .attr("d", line(filtSingleOccData));
 
 
-
-
-
-
-
-
-
-    // d3.select("#xAxisActScatt")
-    //             .attr("transform", "translate("+margin.left+"," + (h+125) + ")")
-    //             .call(xAxis)
-    //             .append("text")
-    //             .attr("x", w)
-    //             .attr("y", -6)
-    //             .text("Males")
-
-    // var clip = d3.select("#act_scattSvg").append("defs").append("svg:clipPath")
-    //     .attr("id", "clip")
-    //     .append("svg:rect")
-    //     .attr("id", "clip-rect")
-    //     .attr("x", "0")
-    //     .attr("y", "0")
-    //     .attr('width', w)
-    //     .attr('height', h);
-
-    // actScatt.attr("clip-path", "url(#clip)");
-                
-    // actScatt.append("rect")
-    //     .attr("x", 50)
-    //     .attr("y", 50)
-    //     .attr("width", w+50)
-    //     .attr("height", h+50);
-
-
-    // actScatt.selectAll(".dots")
-    //     .data(filtData)
-    //     .enter()
-    //     .append("path")
-    //     .attr("d", symbol.type( function (d){
-    //         if (d.SEX == "Males")
-    //             return d3.symbolSquare;
-    //         else 
-    //             return d3.symbolCircle;
-    //     }))
-    //     .attr("transform", function(d) {
-    //         return "translate("+ xScale(d.Value) + ", "+ yScale(d.Value) + ") rotate(45)";
-    //     });
 }
 
 
@@ -189,8 +236,8 @@ function removeInvalidData(filtData) {
     
     // Controllo di eventuali dati mancanti e rimozione di questi per una corretta visualizzazione dei charts
      for(var i=0; i<filtData.length; i++) {
-        if (filtData[i].Value == ":") {
-            if (!missingData)
+        if (isNaN(filtData[i].Value)) {
+            if   (!missingData)
                 missingData = true;
             filtData.splice(i,1);
             i = -1;
@@ -580,15 +627,18 @@ d3.csv("data/earn_ses_monthly_1_Data.csv", function (error, csv) {
         isco= d.ISCO08;
         worktime= d.WORKTIME;
         age= d.AGE;
-        time= +d.TIME;
+        time= d.TIME;
         indic_se= d.INDIC_SE;
-        value= d.Value.replace(".", "");
+        value= d.Value;
     })
     
     data = csv;    
 
     data.forEach(function(d) {
         
+        d.Value = +(d.Value.replace(".",""));
+        d.TIME = +d.TIME;
+
         if (!countries.includes(d.GEO)) 
             countries.push(d.GEO);
 

@@ -14,9 +14,23 @@ var xScale,
     yScale,
     xAxis,
     lineGenerator,
-    xTimeScale;
+    xTimeScale,
+    color;
 
-var symbol = d3.symbol().size(50);
+var lineOpacity = "0.25";
+var lineOpacityHover = "0.85";
+var otherLinesOpacityHover = "0.1";
+var lineStroke = "1.5px";
+var lineStrokeHover = "2.5px";
+
+var circleOpacity = "0.85";
+var circleOpacityOnLineHover = "0.25"
+var circleRadius = 3;
+var circleRadiusHover = 6;
+
+var duration = 250;
+
+var symbol = d3.symbol().size(70);
 var missingData = false;
 
 var actScatt = d3.select("#activities")
@@ -122,6 +136,12 @@ function scaling(dataset) {
     xTimeAxis = d3.axisBottom()
             .scale(xTimeScale)
             .ticks(years.length);
+
+    color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    occColor = d3.scaleOrdinal()
+            .domain(occupations)
+            .range(d3.schemeCategory20);
     
 }
 
@@ -174,9 +194,11 @@ function genderStudyCharts() {
             }))
             .attr("transform", function(d) {
                 return "translate("+ xScale(d.Value) + ", "+ yScale(d.Value) + ") rotate(45)";
-            });
+            })
+            .style("stroke", function(d,i) { return color(i)})
+            .style("fill", "white");
 
-    //Occupation's Chart -> Selected year
+    //Occupation"s Chart -> Selected year
     var filtDataOccupations = filterData(data, firstCountry, "Business economy", "allOccupations", "both", "Total", false);
     filtDataOccupations = removeInvalidData(filtDataOccupations);
     scaling(filtDataOccupations);
@@ -214,19 +236,22 @@ function genderStudyCharts() {
             }))
             .attr("transform", function(d) {
                 return "translate("+ xScale(d.Value) + ", "+ yScale(d.Value) + ") rotate(45)";
-            });
+            })
+            .style("stroke", function(d,i) { 
+                return occColor(d.ISCO08)
+            })
+            .style("fill", "white");
 
 
-    //Occupation's LineChart 
+    //Occupation"s LineChart 
     var filtSingleOccData = filterData(data, firstCountry, "Business economy", "Managers", "both", "Total", true);
     filtSingleOccData = removeInvalidData(filtSingleOccData);
     scaling(filtSingleOccData);
+    var malesFiltered = filterData(filtSingleOccData, firstCountry, "Business economy", "Managers", "Males", "Total", true);
+    var femalesFiltered = filterData(filtSingleOccData, firstCountry, "Business economy", "Managers", "Females", "Total", true);
+    var bothGenderFilt = [malesFiltered, femalesFiltered];
     
         
-    //TODO: aggiungere lo scale delle x per gli anni,
-    //fare una variabile per gli anni
-
-  
 
     //OCCUPATIONS LineChart
     occLineChart.append("g")
@@ -239,25 +264,95 @@ function genderStudyCharts() {
         .attr("class", "y axis")
         .call(yAxis);
 
-    let lines = occLineChart.append('g')
-        .attr('class', 'lines');
+    let lines = occLineChart.append("g")
+        .attr("class", "lines");
 
     lines.selectAll(".line-group")
-        .data(filtSingleOccData).enter()
+        .data(bothGenderFilt).enter()
         .append("g")
-        .attr("class", "line-group")  
+        .attr("class", "line-group")
+        .on("mouseover", function(d, i) {
+            occLineChart.append("text")
+              .attr("class", "title-text")
+              .style("fill", color(i))        
+              .text(d[0].GEO+", "+d[0].SEX)
+              .attr("text-anchor", "middle")
+              .attr("x", (w-margin.top)/2)
+              .attr("y", 15);
+          })
+        .on("mouseout", function(d) {
+            occLineChart.select(".title-text").remove();
+          })  
         .append("path")
         .attr("class", "line")  
-        .attr("d", lineGenerator(filtSingleOccData))
-        .style("stroke", "black")
-        .style("opacity", "0.25");
-
-    // occLineChart.append("path")
-    //     .data(filtSingleOccData)
-    //     .attr("d", function(d) {
-    //         return line(d);
-    //     });
-
+        .attr("d", function(d) {
+            return lineGenerator(d);
+        })
+        .style("stroke", function(d,i) { return color(i)})
+        .style("opacity", lineOpacity)
+        .on("mouseover", function(d) {
+            d3.selectAll(".line")
+                          .style("opacity", otherLinesOpacityHover);
+            d3.selectAll(".circle")
+                          .style("opacity", circleOpacityOnLineHover);
+            d3.select(this)
+              .style("opacity", lineOpacityHover)
+              .style("stroke-width", lineStrokeHover)
+              .style("cursor", "pointer");
+          })
+        .on("mouseout", function(d) {
+            d3.selectAll(".line")
+                          .style("opacity", lineOpacity);
+            d3.selectAll(".circle")
+                          .style("opacity", circleOpacity);
+            d3.select(this)
+              .style("stroke-width", lineStroke)
+              .style("cursor", "none");
+          });
+      
+      
+      /* Add circles in the line */
+      lines.selectAll("circle-group")
+        .data(bothGenderFilt).enter()
+        .append("g")
+        .style("fill", function(d,i) { return color(i)})
+        .selectAll("circle")
+        .data(function(d) { return d}).enter()
+        .append("g")
+        .attr("class", "circle")  
+        .on("mouseover", function(d) {
+            d3.select(this)     
+              .style("cursor", "pointer")
+              .append("text")
+              .attr("class", "text")
+              .text(d.Value)
+              .attr("x", function(d) { return xTimeScale(d.TIME) + 5;})
+              .attr("y", function(d) { return yScale(d.Value) - 10;});
+          })
+        .on("mouseout", function(d) {
+            d3.select(this)
+              .style("cursor", "none")  
+              .transition()
+              .duration(duration)
+              .selectAll(".text").remove();
+          })
+        .append("circle")
+        .attr("cx", function(d) { return xTimeScale(d.TIME);})
+        .attr("cy", function(d) { return yScale(d.Value);})
+        .attr("r", circleRadius)
+        .style("opacity", circleOpacity)
+        .on("mouseover", function(d) {
+              d3.select(this)
+                .transition()
+                .duration(duration)
+                .attr("r", circleRadiusHover);
+            })
+          .on("mouseout", function(d) {
+              d3.select(this) 
+                .transition()
+                .duration(duration)
+                .attr("r", circleRadius);  
+            });
 
 }
 
@@ -279,7 +374,8 @@ function removeInvalidData(filtData) {
 
     var parseDate = d3.timeParse("%Y");
     filtData.forEach(function(d,i) {
-        filtData[i].TIME = parseDate(d.TIME);
+        if (Object.prototype.toString.call(d.TIME) !== "[object Date]")
+            filtData[i].TIME = parseDate(d.TIME);
     })
 
     return filtData;
@@ -294,7 +390,7 @@ function removeInvalidData(filtData) {
  * @param {String} act Tipo di Attività
  * @param {String} occ Occupazione
  * @param {String} gender Sesso
- * @param {String} age Fascia d'età
+ * @param {String} age Fascia d"età
  * @param {Boolean} checkAllYears Dati relativi a tutti gli anni
  */
 function filterData(dataset, country, act, occ, gender, age, checkAllYears) {
@@ -357,7 +453,7 @@ function filterData(dataset, country, act, occ, gender, age, checkAllYears) {
                                 return;
                         }
                     }
-                    // Selezione di un'attività specifica
+                    // Selezione di un"attività specifica
                     else {
                         if (d.NACE_R2.trim() === act.trim()) {
                             // Selezione di tutte le occupazioni
@@ -431,7 +527,7 @@ function filterData(dataset, country, act, occ, gender, age, checkAllYears) {
                                     return;
                             }
                         }
-                        // Selezione di un'attività specifica
+                        // Selezione di un"attività specifica
                         else {
                             if (d.NACE_R2.trim() === act.trim()) {
                                 // Selezione di tutte le occupazioni
@@ -512,7 +608,7 @@ function filterData(dataset, country, act, occ, gender, age, checkAllYears) {
                                     return;
                             }
                         }
-                        // Selezione di un'attività specifica
+                        // Selezione di un"attività specifica
                         else {
                             if (d.NACE_R2.trim() === act.trim()) {
                                 // Selezione di tutte le occupazioni
@@ -586,7 +682,7 @@ function filterData(dataset, country, act, occ, gender, age, checkAllYears) {
                                         return;
                                 }
                             }
-                            // Selezione di un'attività specifica
+                            // Selezione di un"attività specifica
                             else {
                                 if (d.NACE_R2.trim() === act.trim()) {
                                     // Selezione di tutte le occupazioni
@@ -639,12 +735,6 @@ function filterData(dataset, country, act, occ, gender, age, checkAllYears) {
 
     return filtData;
 }
-
-
-
-
-
-
 
 
 // Carico i file csv

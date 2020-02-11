@@ -2,6 +2,7 @@ var data;
 var countries = [];
 var activities = [];
 var occupations = [];
+var years = [];
 var selectedYear = 0;
 var margin = {top: 50, right: 50, bottom: 50, left: 70};
 var h= 660-margin.left -margin.right;
@@ -11,7 +12,9 @@ var firstCountry = "";
 var secondCountry = "";
 var xScale,
     yScale,
-    xAxis;
+    xAxis,
+    lineGenerator,
+    xTimeScale;
 
 var symbol = d3.symbol().size(50);
 var missingData = false;
@@ -104,6 +107,22 @@ function scaling(dataset) {
             .scale(yScale)
             .ticks(ticksNumb);
 
+    xTimeScale = d3.scaleTime()
+            .domain(d3.extent(years))
+            .range([0, w]);
+
+    lineGenerator = d3.line()
+            .x(function(d) {
+                return xTimeScale(d.TIME);
+            })
+            .y(function(d) {
+                return yScale(d.Value);
+            });
+
+    xTimeAxis = d3.axisBottom()
+            .scale(xTimeScale)
+            .ticks(years.length);
+    
 }
 
 
@@ -118,10 +137,10 @@ function genderStudyCharts() {
     selectedYear = 2002;
     //Activities Chart
     var filtData = filterData(data, firstCountry, "allActivities", "Total", "both", "Total", false);
+    filtData = removeInvalidData(filtData);
+    scaling(filtData);
     
     //TODO: mettere un alertbox quando ci sono dati non validi
-    removeInvalidData(filtData);
-    scaling(filtData);
 
     //ACTIVITIES Scatterplot
     actChart.append("g")
@@ -159,7 +178,7 @@ function genderStudyCharts() {
 
     //Occupation's Chart -> Selected year
     var filtDataOccupations = filterData(data, firstCountry, "Business economy", "allOccupations", "both", "Total", false);
-    removeInvalidData(filtDataOccupations);
+    filtDataOccupations = removeInvalidData(filtDataOccupations);
     scaling(filtDataOccupations);
         
 
@@ -200,40 +219,51 @@ function genderStudyCharts() {
 
     //Occupation's LineChart 
     var filtSingleOccData = filterData(data, firstCountry, "Business economy", "Managers", "both", "Total", true);
-    removeInvalidData(filtSingleOccData);
+    filtSingleOccData = removeInvalidData(filtSingleOccData);
     scaling(filtSingleOccData);
+    
         
-    var line = d3.line()
-        .x(function(d) {
-            return xScale(d.TIME);
-        })
-        .y(function(d) {
-            return yScale(d.Value);
-        });
+    //TODO: aggiungere lo scale delle x per gli anni,
+    //fare una variabile per gli anni
 
-        //TODO: aggiungere lo scale delle x per gli anni,
-        //fare una variabile per gli anni
+  
 
     //OCCUPATIONS LineChart
     occLineChart.append("g")
         .attr("transform", "translate(0," + h + ")")
         .attr("class", "x axis")
-        .call(xAxis);
+        .call(xTimeAxis);
     
     occLineChart.append("g")
         .attr("transform", "translate(0,0)")
         .attr("class", "y axis")
         .call(yAxis);
 
-    occLineChart.append("path")
-        .attr("d", line(filtSingleOccData));
+    let lines = occLineChart.append('g')
+        .attr('class', 'lines');
+
+    lines.selectAll(".line-group")
+        .data(filtSingleOccData).enter()
+        .append("g")
+        .attr("class", "line-group")  
+        .append("path")
+        .attr("class", "line")  
+        .attr("d", lineGenerator(filtSingleOccData))
+        .style("stroke", "black")
+        .style("opacity", "0.25");
+
+    // occLineChart.append("path")
+    //     .data(filtSingleOccData)
+    //     .attr("d", function(d) {
+    //         return line(d);
+    //     });
 
 
 }
 
 
+
 function removeInvalidData(filtData) {
-    
     // Controllo di eventuali dati mancanti e rimozione di questi per una corretta visualizzazione dei charts
      for(var i=0; i<filtData.length; i++) {
         if (isNaN(filtData[i].Value)) {
@@ -246,6 +276,12 @@ function removeInvalidData(filtData) {
         else
             continue;
     }
+
+    var parseDate = d3.timeParse("%Y");
+    filtData.forEach(function(d,i) {
+        filtData[i].TIME = parseDate(d.TIME);
+    })
+
     return filtData;
 }
 
@@ -637,18 +673,26 @@ d3.csv("data/earn_ses_monthly_1_Data.csv", function (error, csv) {
     data.forEach(function(d) {
         
         d.Value = +(d.Value.replace(".",""));
-        d.TIME = +d.TIME;
-
+        
         if (!countries.includes(d.GEO)) 
             countries.push(d.GEO);
 
         if (!activities.includes(d.NACE_R2)) 
-        activities.push(d.NACE_R2);
+            activities.push(d.NACE_R2);
 
         if (!occupations.includes(d.ISCO08)) 
-        occupations.push(d.ISCO08);
+            occupations.push(d.ISCO08);
+
+        if (!years.includes(d.TIME)) 
+            years.push(d.TIME);
         
+    });
+
+    var parseDate = d3.timeParse("%Y");
+    years.forEach(function(d,i) {
+            years[i] = parseDate(d);
     })
+
     // console.log(data);
     radioList();
     genderStudyCharts();

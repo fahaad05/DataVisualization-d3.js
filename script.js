@@ -28,9 +28,17 @@ var circleOpacityOnLineHover = "0.25"
 var circleRadius = 3;
 var circleRadiusHover = 6;
 
+var textX = 20;
+var textY = 10;
+var textSize = "0.8rem";
+
+
+var symbol = d3.symbol().size(65);
+
+
+
 var duration = 250;
 
-var symbol = d3.symbol().size(70);
 var missingData = false;
 
 var actScatt = d3.select("#activities")
@@ -142,8 +150,31 @@ function scaling(dataset) {
     occColor = d3.scaleOrdinal()
             .domain(occupations)
             .range(d3.schemeCategory20);
+
+    actColor = d3.scaleOrdinal()
+            .domain(activities)
+            .range(d3.schemeCategory10);
     
 }
+
+
+function getActivitiesPerGender(dataset) {
+
+    var malesData = [];
+    var femalesData = [];
+    var activitiesPerGenderData = [];
+
+    activities.forEach(function(d) {
+        malesData.push(filterData(dataset, firstCountry, d, "Total", "Males", "Total", false));
+        femalesData.push(filterData(dataset, firstCountry, d, "Total", "Females", "Total", false));
+    }) 
+
+    activitiesPerGenderData.push(malesData);
+    activitiesPerGenderData.push(femalesData);
+
+    return activitiesPerGenderData;
+}
+
 
 
 function genderStudyCharts() {
@@ -159,6 +190,7 @@ function genderStudyCharts() {
     var filtData = filterData(data, firstCountry, "allActivities", "Total", "both", "Total", false);
     filtData = removeInvalidData(filtData);
     scaling(filtData);
+    filtData = getActivitiesPerGender(filtData);
     
     //TODO: mettere un alertbox quando ci sono dati non validi
 
@@ -185,6 +217,32 @@ function genderStudyCharts() {
     actChart.append("g").attr("clip-path","url(#clip)").selectAll(".dots")
             .data(filtData)
             .enter()
+            .append("g")
+            .on("mouseover", function(d,i) {
+                scaling(filtData);
+                
+                d3.select(this)     
+                  .style("cursor", "pointer")
+                  .append("text")
+                  .attr("class", "text")
+                  .attr("fill", function(d) {
+                      return actColor(d.NACE_R2);
+                  })
+                  .text(d.Value)
+                  .attr("x", function(d) { return xScale(d.Value) - textX;})
+                  .attr("y", function(d) { return yScale(d.Value) - textY;})
+                  .attr("font-size", textSize);
+
+              })
+            .on("mouseout", function(d) {
+            
+            d3.select(this)
+                .style("cursor", "none")  
+                .transition()
+                .duration(duration)
+                .selectAll(".text").remove();
+
+            })    
             .append("path")
             .attr("d", symbol.type( function (d){
                 if (d.SEX == "Males")
@@ -195,8 +253,13 @@ function genderStudyCharts() {
             .attr("transform", function(d) {
                 return "translate("+ xScale(d.Value) + ", "+ yScale(d.Value) + ") rotate(45)";
             })
-            .style("stroke", function(d,i) { return color(i)})
-            .style("fill", "white");
+            .style("stroke", function(d,i) { 
+                return actColor(d.NACE_R2);
+            })
+            .style("fill", function(d,i) { 
+                return actColor(d.NACE_R2);
+            });
+
 
     //Occupation"s Chart -> Selected year
     var filtDataOccupations = filterData(data, firstCountry, "Business economy", "allOccupations", "both", "Total", false);
@@ -224,10 +287,37 @@ function genderStudyCharts() {
             .attr("width", w)
             .attr("height", h);
 
-    occChart.append("g").attr("clip-path","url(#clip_occ_sel)").selectAll(".dots")
+    occChart.append("g").attr("clip-path","url(#clip_occ_sel)").selectAll("dot")
             .data(filtDataOccupations)
             .enter()
+            .append("g")
+            .on("mouseover", function(d) {
+                scaling(filtDataOccupations);
+
+                d3.select(this)     
+                  .style("cursor", "pointer")
+                  .append("text")
+                  .attr("class", "text")
+                  .attr("fill", function(d) {
+                      return occColor(d.ISCO08);
+                  })
+                  .text(d.Value)
+                  .attr("x", function(d) { return xScale(d.Value) - textX;})
+                  .attr("y", function(d) { return yScale(d.Value) - textY;})
+                  .attr("font-size", textSize);
+
+              })
+            .on("mouseout", function(d) {
+            
+            d3.select(this)
+                .style("cursor", "none")  
+                .transition()
+                .duration(duration)
+                .selectAll(".text").remove();
+
+            })    
             .append("path")
+            .attr("class", "symbol")
             .attr("d", symbol.type( function (d){
                 if (d.SEX == "Males")
                     return d3.symbolSquare;
@@ -240,9 +330,12 @@ function genderStudyCharts() {
             .style("stroke", function(d,i) { 
                 return occColor(d.ISCO08)
             })
-            .style("fill", "white");
+            .style("fill", function(d,i) { 
+                return occColor(d.ISCO08)
+            });
 
 
+    
     //Occupation"s LineChart 
     var filtSingleOccData = filterData(data, firstCountry, "Business economy", "Managers", "both", "Total", true);
     filtSingleOccData = removeInvalidData(filtSingleOccData);
@@ -321,6 +414,7 @@ function genderStudyCharts() {
         .append("g")
         .attr("class", "circle")  
         .on("mouseover", function(d) {
+            
             d3.select(this)     
               .style("cursor", "pointer")
               .append("text")

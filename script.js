@@ -28,7 +28,7 @@ var circleOpacityOnLineHover = "0.25"
 var circleRadius = 3;
 var circleRadiusHover = 6;
 
-var textX = 20;
+var textX = 50;
 var textY = 10;
 var textSize = "0.8rem";
 
@@ -101,9 +101,17 @@ function radioList() {
 
 function scaling(dataset) {
 
-    var min_xy = +d3.min(dataset, function(d) {return d.Value;});
-    var max_xy = +d3.max(dataset, function(d) {return d.Value;});
+    var min_xy = +d3.min(dataset, function(d) { return d.Value;});
+    var max_xy = +d3.max(dataset, function(d) { return d.Value;});
     var avg_xy = +(max_xy - min_xy)/dataset.length;
+
+    var min_xy_males = +d3.min(dataset, function(d) {if (d.SEX == "Males") return d.Value; else return 999999999});
+    var max_xy_males = +d3.max(dataset, function(d) {if (d.SEX == "Males") return d.Value; else return 0});
+    var avg_xy_males = +(max_xy_males - min_xy_males)/(dataset.length/2);
+    
+    var min_xy_females = +d3.min(dataset, function(d) {if (d.SEX == "Females") return d.Value; else return 99999999});
+    var max_xy_females = +d3.max(dataset, function(d) {if (d.SEX == "Females") return d.Value; else return 0});
+    var avg_xy_females = +(max_xy_females - min_xy_females)/(dataset.length/2);
 
     // TODO: Aggiustare un pò le scale per ottenere una visualizzazione migliore     
     xScale = d3.scaleLinear()
@@ -113,6 +121,16 @@ function scaling(dataset) {
     yScale = d3.scaleLinear()
         .domain([min_xy-avg_xy, max_xy+avg_xy])
         .range([h,0]);
+
+    //Scale in base al genere
+    xScaleMales = d3.scaleLinear()
+        .domain([min_xy_males-avg_xy_males, max_xy_males+avg_xy_males])
+        .range([0, w]);
+
+    yScaleFemales = d3.scaleLinear()
+        .domain([min_xy_females-avg_xy_females, max_xy_females+avg_xy_females])
+        .range([h,0]);
+
 
     //Per non avere troppi ticks negli assi
     var ticksNumb;
@@ -127,6 +145,14 @@ function scaling(dataset) {
 
     yAxis = d3.axisLeft()
             .scale(yScale)
+            .ticks(ticksNumb);
+    
+    xAxisGender = d3.axisBottom()
+            .scale(xScaleMales)
+            .ticks(ticksNumb);
+
+    yAxisGender = d3.axisLeft()
+            .scale(yScaleFemales)
             .ticks(ticksNumb);
 
     xTimeScale = d3.scaleTime()
@@ -158,19 +184,17 @@ function scaling(dataset) {
 }
 
 
-function getActivitiesPerGender(dataset) {
+function getDataPerGender(dataset, country, act, occ) {
 
-    var malesData = [];
-    var femalesData = [];
+    var malesFiltData = [];
+    var femalesFiltData = [];
     var activitiesPerGenderData = [];
 
-    activities.forEach(function(d) {
-        malesData.push(filterData(dataset, firstCountry, d, "Total", "Males", "Total", false));
-        femalesData.push(filterData(dataset, firstCountry, d, "Total", "Females", "Total", false));
-    }) 
+    malesFiltData = filterData(dataset, country, act, occ, "Males", "Total", false);
+    femalesFiltData = filterData(dataset, country, act, occ, "Females", "Total", false);
 
-    activitiesPerGenderData.push(malesData);
-    activitiesPerGenderData.push(femalesData);
+    activitiesPerGenderData.push(malesFiltData);
+    activitiesPerGenderData.push(femalesFiltData);
 
     return activitiesPerGenderData;
 }
@@ -190,7 +214,8 @@ function genderStudyCharts() {
     var filtData = filterData(data, firstCountry, "allActivities", "Total", "both", "Total", false);
     filtData = removeInvalidData(filtData);
     scaling(filtData);
-    filtData = getActivitiesPerGender(filtData);
+    
+    filtDataPerGender = getDataPerGender(filtData, firstCountry, "allActivities", "Total");
     
     //TODO: mettere un alertbox quando ci sono dati non validi
 
@@ -198,12 +223,12 @@ function genderStudyCharts() {
     actChart.append("g")
             .attr("transform", "translate(0," + h + ")")
             .attr("class", "x axis")
-            .call(xAxis);
+            .call(xAxisGender);
     
     actChart.append("g")
             .attr("transform", "translate(0,0)")
             .attr("class", "y axis")
-            .call(yAxis);
+            .call(yAxisGender);
 
     actChart.append("defs").append("clipPath")
             .attr("id", "clip")
@@ -215,7 +240,7 @@ function genderStudyCharts() {
             .attr("height", h);
 
     actChart.append("g").attr("clip-path","url(#clip)").selectAll(".dots")
-            .data(filtData)
+            .data(filtDataPerGender[0])
             .enter()
             .append("g")
             .on("mouseover", function(d,i) {
@@ -228,11 +253,28 @@ function genderStudyCharts() {
                   .attr("fill", function(d) {
                       return actColor(d.NACE_R2);
                   })
-                  .text(d.Value)
-                  .attr("x", function(d) { return xScale(d.Value) - textX;})
-                  .attr("y", function(d) { return yScale(d.Value) - textY;})
-                  .attr("font-size", textSize);
+                  .text(function(d) {
+                    
+                    var y;
+                    filtDataPerGender[1].forEach(function(c) {
+                        if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08)
+                            y = c.Value;
+                    })  
+                    
+                    return "M:"+d.Value+"\nF:"+y;
+                  })
+                  .attr("x", function(d) { 
+                    
+                    var y;
+                    filtDataPerGender[1].forEach(function(c) {
+                        if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08)
+                            y = c.Value;
+                    })
 
+                    d3.select(this).attr("y", yScaleFemales(y)-textY);
+                    return xScaleMales(d.Value) - textX;
+                  })
+                  .attr("font-size", textSize);
               })
             .on("mouseout", function(d) {
             
@@ -245,13 +287,19 @@ function genderStudyCharts() {
             })    
             .append("path")
             .attr("d", symbol.type( function (d){
-                if (d.SEX == "Males")
-                    return d3.symbolSquare;
-                else 
+                // if (d.SEX == "Males")
+                //     return d3.symbolSquare;
+                // else 
                     return d3.symbolCircle;
             }))
             .attr("transform", function(d) {
-                return "translate("+ xScale(d.Value) + ", "+ yScale(d.Value) + ") rotate(45)";
+                var y;
+                    filtDataPerGender[1].forEach(function(c) {
+                        if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08)
+                            y = c.Value;
+                    })
+
+                return "translate("+ xScaleMales(d.Value) + ","+ yScaleFemales(y) + " )";
             })
             .style("stroke", function(d,i) { 
                 return actColor(d.NACE_R2);
@@ -265,18 +313,20 @@ function genderStudyCharts() {
     var filtDataOccupations = filterData(data, firstCountry, "Business economy", "allOccupations", "both", "Total", false);
     filtDataOccupations = removeInvalidData(filtDataOccupations);
     scaling(filtDataOccupations);
+
+    filtDataOccupationsPerGender = getDataPerGender(filtDataOccupations, firstCountry, "Business economy", "allOccupations");
         
 
     //OCCUPATIONS Scatterplot -> Selected Year
     occChart.append("g")
             .attr("transform", "translate(0," + h + ")")
             .attr("class", "x axis")
-            .call(xAxis);
+            .call(xAxisGender);
     
     occChart.append("g")
             .attr("transform", "translate(0,0)")
             .attr("class", "y axis")
-            .call(yAxis);
+            .call(yAxisGender);
 
     occChart.append("defs").append("clipPath")
             .attr("id", "clip_occ_sel")
@@ -288,7 +338,7 @@ function genderStudyCharts() {
             .attr("height", h);
 
     occChart.append("g").attr("clip-path","url(#clip_occ_sel)").selectAll("dot")
-            .data(filtDataOccupations)
+            .data(filtDataOccupationsPerGender[0])
             .enter()
             .append("g")
             .on("mouseover", function(d) {
@@ -301,9 +351,27 @@ function genderStudyCharts() {
                   .attr("fill", function(d) {
                       return occColor(d.ISCO08);
                   })
-                  .text(d.Value)
-                  .attr("x", function(d) { return xScale(d.Value) - textX;})
-                  .attr("y", function(d) { return yScale(d.Value) - textY;})
+                  .text(function(d) {
+                    
+                    var y;
+                    filtDataOccupationsPerGender[1].forEach(function(c) {
+                        if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08)
+                            y = c.Value;
+                    })  
+                    
+                    return "M:"+d.Value+"\nF:"+y;
+                  })
+                  .attr("x", function(d) { 
+                    
+                    var y;
+                    filtDataOccupationsPerGender[1].forEach(function(c) {
+                        if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08)
+                            y = c.Value;
+                    })
+
+                    d3.select(this).attr("y", yScaleFemales(y)-textY);
+                    return xScaleMales(d.Value) - textX;
+                  })
                   .attr("font-size", textSize);
 
               })
@@ -319,13 +387,18 @@ function genderStudyCharts() {
             .append("path")
             .attr("class", "symbol")
             .attr("d", symbol.type( function (d){
-                if (d.SEX == "Males")
-                    return d3.symbolSquare;
-                else 
+                // if (d.SEX == "Males")
+                //     return d3.symbolSquare;
+                // else 
                     return d3.symbolCircle;
             }))
             .attr("transform", function(d) {
-                return "translate("+ xScale(d.Value) + ", "+ yScale(d.Value) + ") rotate(45)";
+                var y;
+                filtDataOccupationsPerGender[1].forEach(function(c) {
+                        if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08)
+                            y = c.Value;
+                    })
+                return "translate("+ xScaleMales(d.Value) + ","+ yScaleFemales(y) + " )";
             })
             .style("stroke", function(d,i) { 
                 return occColor(d.ISCO08)
@@ -468,6 +541,7 @@ function removeInvalidData(filtData) {
 
     var parseDate = d3.timeParse("%Y");
     filtData.forEach(function(d,i) {
+        //Non parsa due volte un oggetto data
         if (Object.prototype.toString.call(d.TIME) !== "[object Date]")
             filtData[i].TIME = parseDate(d.TIME);
     })
@@ -587,7 +661,7 @@ function filterData(dataset, country, act, occ, gender, age, checkAllYears) {
                 }
                 // Selezione di un anno specifico
                 else {
-                    if (d.TIME == selectedYear) {
+                    if ((d.TIME == selectedYear) || ((Object.prototype.toString.call(d.TIME) === "[object Date]") && (d.TIME.getFullYear() == selectedYear))) {
                         // Selezione di tutte le attività
                         if ((checkAllActivities == true)) {
                             // Selezione di tutte le occupazioni
@@ -742,7 +816,7 @@ function filterData(dataset, country, act, occ, gender, age, checkAllYears) {
                     }
                     // Selezione di un anno specifico
                     else {
-                        if (d.TIME == selectedYear) {
+                        if ((d.TIME == selectedYear) || ((Object.prototype.toString.call(d.TIME) === "[object Date]") && (d.TIME.getFullYear() == selectedYear))) {
                             // Selezione di tutte le attività
                             if ((checkAllActivities == true)) {
                                 // Selezione di tutte le occupazioni

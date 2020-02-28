@@ -44,22 +44,39 @@
                     <div id="gender" class="tab-pane fade in active mt-2 container " role="tabpanel" aria-labelledby="gender-tab">
                       <div class="row">
                         
-                            <form class="form-inline" id = "genderMeny">
+                            <form class="form-inline" id = "genderMenu">
                                 <label for="firstCountrySelected" class="my-1 mr-1"><b>First Country Selected</b></label>
-                                <input type="text" readonly class="my-1 mr-sm-2 form-control-plaintext col-sm-3 pl-2" id="firstCountrySelected">
-                                <label class="my-1 mr-2" for="secondCountrySelected">Second Country</label>
+                                <input type="text" readonly class="my-1 mr-sm-2 form-control-plaintext col-sm-2 pl-2" id="firstCountrySelected">
+                                <label class="my-1 mr-2" for="secondCountrySelected"><b>Second Country</b></label>
                                 <select class="custom-select my-1 mr-sm-2" id="secondCountrySelected">
-                                    <option selected>Second Country...</option>
-                                    <option value="1">One</option>
-                                    <option value="2">Two</option>
-                                    <option value="3">Three</option>
+                                    <option value="default" selected>None...</option>
                                 </select>
                             
-                                <button type="submit" class="btn btn-primary my-1">Submit</button>
+                                <label class="my-1 mr-2" for="yearSelected"><b>Year</b></label>
+                                <select class="custom-select my-1 mr-sm-2" id="yearSelected">
+                                </select>
+                            
+                                <button type="button" class="btn btn-primary my-1" onclick="countryRedirectUpdate()">Submit</button>
                             </form>
 
-                            <div id="activities" class="col"></div>
-                            <div id="occ_scatt" class="col"></div>
+                            <div id="activities" class="col border-bottom"></div>
+                            <form class="form-inline" id = "activitiesMenu">
+                                
+                                <label class="my-1 mr-2 mt-2" for="activitySelected"><b>Activity Selected: </b></label>
+                                <select class="custom-select my-1 mr-sm-2 mt-2" id="activitySelected">
+                                </select>
+                                <button type="button" class="btn btn-primary my-1 mt-2" onclick="activityRedirectUpdate()">Submit</button>
+
+                            </form>
+                            <div id="occ_scatt" class="col border-bottom"></div>
+                            <form class="form-inline" id = "occupationsMenu">
+                                
+                                <label class="my-1 mr-2 mt-2" for="occupationSelected"><b>Occupation Selected: </b></label>
+                                <select class="custom-select my-1 mr-sm-2 mt-2" id="occupationSelected">
+                                </select>
+                                <button type="button" class="btn btn-primary my-1 mt-2" onclick="occupationRedirectUpdate()">Submit</button>
+                                
+                            </form>
                             <div id="occ_lineChart" class="col"></div>
                         </div>
                     </div>

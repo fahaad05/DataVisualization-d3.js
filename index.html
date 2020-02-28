@@ -42,19 +42,33 @@
                     
                     <!-- STUDIO RELATIVO AL GENERE-->
                     <div id="gender" class="tab-pane fade in active mt-2 container " role="tabpanel" aria-labelledby="gender-tab">
-                      <h3>Gender Study</h3>
                       <div class="row">
+                        
+                            <form class="form-inline" id = "genderMeny">
+                                <label for="firstCountrySelected" class="my-1 mr-1"><b>First Country Selected</b></label>
+                                <input type="text" readonly class="my-1 mr-sm-2 form-control-plaintext col-sm-3 pl-2" id="firstCountrySelected">
+                                <label class="my-1 mr-2" for="secondCountrySelected">Second Country</label>
+                                <select class="custom-select my-1 mr-sm-2" id="secondCountrySelected">
+                                    <option selected>Second Country...</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            
+                                <button type="submit" class="btn btn-primary my-1">Submit</button>
+                            </form>
+
                             <div id="activities" class="col"></div>
                             <div id="occ_scatt" class="col"></div>
                             <div id="occ_lineChart" class="col"></div>
-                      </div>
+                        </div>
                     </div>
                     
-                    <!-- STUDIO RELATIVO ALLE FASCE DI ETA' -->
-                    <div id="age" class="tab-pane fade mt-2" role="tabpanel" aria-labelledby="age-tab">
-                      <h3>Age Study</h3> 
-                      <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-                    </div>
+                        <!-- STUDIO RELATIVO ALLE FASCE DI ETA' -->
+                        <div id="age" class="tab-pane fade mt-2" role="tabpanel" aria-labelledby="age-tab">
+                        <h3>Age Study</h3> 
+                        <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                        </div>
                 </div>
             </div>
         </div>

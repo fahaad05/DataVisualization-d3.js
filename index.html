@@ -42,7 +42,7 @@
                     
                     <!-- STUDIO RELATIVO AL GENERE-->
                     <div id="gender" class="tab-pane fade in active mt-2 container " role="tabpanel" aria-labelledby="gender-tab">
-                      <div class="row">
+                        <div class="row">
                         
                             <form class="form-inline" id = "genderMenu">
                                 <label for="firstCountrySelected" class="my-1 mr-1"><b>First Country Selected</b></label>
@@ -58,35 +58,44 @@
                             
                                 <button type="button" class="btn btn-primary my-1" onclick="countryRedirectUpdate()">Submit</button>
                             </form>
+                            <div class="d-flex flex-row border-bottom">
+                                <div id="activities"></div>
+                                <div id="activitiesAlert" class="d-flex flex-column"></div>
+                            </div>
 
-                            <div id="activities" class="col border-bottom"></div>
                             <form class="form-inline" id = "activitiesMenu">
-                                
                                 <label class="my-1 mr-2 mt-2" for="activitySelected"><b>Activity Selected: </b></label>
                                 <select class="custom-select my-1 mr-sm-2 mt-2" id="activitySelected">
                                 </select>
                                 <button type="button" class="btn btn-primary my-1 mt-2" onclick="activityRedirectUpdate()">Submit</button>
 
                             </form>
-                            <div id="occ_scatt" class="col border-bottom"></div>
+                            <div class="d-flex flex-row border-bottom">
+                                <div id="occ_scatt"></div>
+                                <div id="occupationAlert" class="d-flex flex-column"></div>
+                            </div>
+
                             <form class="form-inline" id = "occupationsMenu">
-                                
                                 <label class="my-1 mr-2 mt-2" for="occupationSelected"><b>Occupation Selected: </b></label>
                                 <select class="custom-select my-1 mr-sm-2 mt-2" id="occupationSelected">
                                 </select>
                                 <button type="button" class="btn btn-primary my-1 mt-2" onclick="occupationRedirectUpdate()">Submit</button>
                                 
                             </form>
-                            <div id="occ_lineChart" class="col"></div>
+
+                            <div class="d-flex flex-row">
+                                <div id="occ_lineChart"></div>
+                                <div id="genderLineChartAlert" class="d-flex flex-column"></div>
+                            </div>
                         </div>
+                    
                     </div>
                     
-                        <!-- STUDIO RELATIVO ALLE FASCE DI ETA' -->
-                        <div id="age" class="tab-pane fade mt-2" role="tabpanel" aria-labelledby="age-tab">
+                    <!-- STUDIO RELATIVO ALLE FASCE DI ETA' -->
+                    <div id="age" class="tab-pane fade mt-2" role="tabpanel" aria-labelledby="age-tab">
                         <h3>Age Study</h3> 
                         <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-                        </div>
-                </div>
+                    </div>
             </div>
         </div>
     </div>

@@ -195,7 +195,7 @@ function globalVar() {
            
     legendOccLine = d3.select("#genderLineChartAlert").append("svg").attr("height", 220).attr("width", 450).attr("class", "pt-5");
            
-    age_legendOccLine = d3.select("#age_genderLineChartAlert").append("svg").attr("height", 220).attr("width", 450).attr("class", "pt-5");
+    age_legendOccLine = d3.select("#age_ageLineChartAlert").append("svg").attr("height", 220).attr("width", 450).attr("class", "pt-5");
 }
 
 
@@ -609,19 +609,23 @@ function scaling(dataset, secondDataset = null) {
             
     xAxis = d3.axisBottom()
             .scale(xScale)
-            .ticks(ticksNumb);
+            .ticks(ticksNumb)
+            .tickSize(-h);
 
     yAxis = d3.axisLeft()
             .scale(yScale)
-            .ticks(ticksNumb);
+            .ticks(ticksNumb)
+            .tickSize(-h);
     
     xAxisGender = d3.axisBottom()
             .scale(xScaleMales)
-            .ticks(ticksNumb);
+            .ticks(ticksNumb)
+            .tickSize(-h);
 
     yAxisGender = d3.axisLeft()
             .scale(yScaleFemales)
-            .ticks(ticksNumb);
+            .ticks(ticksNumb)
+            .tickSize(-h);
 
     xTimeScale = d3.scaleTime()
             .domain(d3.extent(years))
@@ -637,7 +641,8 @@ function scaling(dataset, secondDataset = null) {
 
     xTimeAxis = d3.axisBottom()
             .scale(xTimeScale)
-            .ticks(years.length);
+            .ticks(years.length)
+            .tickSize(-h);
     
     occColor = d3.scaleOrdinal()
             .domain(occupations)
@@ -696,11 +701,13 @@ function age_scaling(dataset, secondDataset = null) {
             
     age_xAxis = d3.axisBottom()
                 .scale(age_xScale)
-                .ticks(ages.length);
+                .ticks(ages.length)
+                .tickSize(-h);
 
     age_yAxis = d3.axisLeft()
                 .scale(age_yScale)
-                .ticks(ticksNumb);
+                .ticks(ticksNumb)
+                .tickSize(-h);
 
     xTimeScale = d3.scaleTime()
                 .domain(d3.extent(years))
@@ -716,7 +723,8 @@ function age_scaling(dataset, secondDataset = null) {
 
     xTimeAxis = d3.axisBottom()
                 .scale(xTimeScale)
-                .ticks(years.length);
+                .ticks(years.length)
+                .tickSize(-h);
 
     occColor = d3.scaleOrdinal()
                 .domain(occupations)
@@ -1454,9 +1462,10 @@ function ageStudyCharts() {
 
     
     //legenda
-    age_legendOccLine.selectAll(".legendDots")
-            .data(ageDataPerAges)
-            .enter()
+    var selection = age_legendOccLine.selectAll(".legendDots")
+            .data(ageDataPerAges);
+
+            selection.enter()
             .append("circle")
                 .attr("cx", 20)
                 .attr("cy", function(d,i) {
@@ -2852,7 +2861,7 @@ function age_updateLineCharts(firstCountryChanged, secondCountryChanged, secondC
         {
             if (!invalidDataOne)
             {
-                scaling(filtDataOccupationFirst);
+                age_scaling(filtDataOccupationFirst);
                 
                 if (filtSingleOccDataPerAgesFirst[0].length != 0) {
 
@@ -2867,7 +2876,7 @@ function age_updateLineCharts(firstCountryChanged, secondCountryChanged, secondC
     {
         if (!invalidDataOne) 
         {
-            scaling(filtDataOccupationFirst);
+            age_scaling(filtDataOccupationFirst);
             if (filtSingleOccDataPerAgesFirst[0].length != 0)
             {
                 filtSingleOccDataPerAgesFirst.forEach(function(d) {
@@ -2881,162 +2890,162 @@ function age_updateLineCharts(firstCountryChanged, secondCountryChanged, secondC
     }
 
     
-    if (invalidDataOne == false ||  (invalidDataTwo == false && secondCountryExists == true)) {
-
+    if (invalidDataOne == false ||  (invalidDataTwo == false && secondCountryExists == true)) 
+    {
         age_occLineChart.select(".y.axis")
-            .transition()
-            .duration(updateDuration)
-            .call(age_yAxis);
-            
-        if (!invalidDataOne) {
-    
-            //FIRST COUNTRY- Enter Lines
-            selection = age_lines.selectAll("line-group").data(filtSingleOccDataPerAgesFirst);
-            selection.enter()
-                .append("g")
-                .attr("class", "firstCountryPath")
-                .on("mouseover", function() {
-                    return age_hoverin(filtSingleOccDataPerAgesFirst, true, 3, filtDataOccupationFirst, filtDataOccupationSecond);
-                })
-                .append("path")
-                .attr("class", "line")  
-                .attr("d", function(d) {
-                    return lineGenerator(d);
-                })
-                .style("stroke", function(d,i) { 
-                    return moreColor(i);
-                })
-                .style("opacity", lineOpacity);
-    
-            if (firstCountryChanged) {
-                //FIRST COUNTRY- Enter Circles
-                selection = age_lines.selectAll("circle-group").data(filtSingleOccDataPerAgesFirst);
-                selection.enter()
-                    .append("g")
-                    .attr("class", function(d,i){
-                        return "firstCountryCircles _"+ages.indexOf(d.AGE);
-                    })
-                    .style("fill", function(d,i) { return moreColor(i)})
-                    .selectAll("circle")
-                    .data(function(d) { return d}).enter()
-                    .append("g")
-                    .attr("class", "circle")  
-                    .append("circle")
-                    .attr("id", function(d) {
-                        return nameReplacedFirst+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
-                    })
-                    .attr("cx", w)
-                    .attr("cy", function(d) { return age_yScale(d.Value);})
-                    .attr("r", circleRadius)
-                    .style("opacity", circleOpacity);
-            }
-            
-            //FIRST COUNTRY- update circles
-            selection = age_lines.selectAll(".firstCountryCircles").selectAll("#"+nameReplacedFirst+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation));
-            selection.transition()
+                .transition()
                 .duration(updateDuration)
-                .attr("cx", function(d) { return xTimeScale(d.TIME);})
-                .attr("cy", function(d) { 
-                    return age_yScale(d.Value);
-                });
-            selection = age_lines.selectAll(".firstCountryCircles");
-            selection.on("mouseover", function() {
-                return age_hoverin(filtSingleOccDataPerAgesFirst, true, 3, filtDataOccupationFirst, filtDataOccupationSecond);
-            });
-        }
-    
-        if (secondCountryExists == true && invalidDataTwo == false)
-        {
-            //SECOND COUNTRY- Enter Lines
-            selection = age_lines.selectAll("line-group").data(filtSingleOccDataPerAgesSecond);
-            selection.enter()
-                .append("g")
-                .attr("class", "secondCountryPath")
-                .on("mouseover", function() {
-                    return age_hoverin(filtSingleOccDataPerAgesSecond, false, 3, filtDataOccupationFirst, filtDataOccupationSecond);
-                })
-                .append("path")
-                .attr("class", "line")  
-                .attr("d", function(d) {
-                    return lineGenerator(d);
-                })
-                .style("stroke", function(d,i) { 
-                    return moreColor(i+2);
-                })
-                .style("opacity", lineOpacity);
+                .call(age_yAxis);
+                
+            if (!invalidDataOne) {
         
-            if (secondCountryChanged) {
-        
-                //SECOND COUNTRY- Enter circles
-                selection = age_lines.selectAll("circle-group").data(filtSingleOccDataPerAgesSecond);
+                //FIRST COUNTRY- Enter Lines
+                selection = age_lines.selectAll("line-group").data(filtSingleOccDataPerAgesFirst);
                 selection.enter()
                     .append("g")
-                    .attr("class", function(d,i){
-                        return "secondCountryCircles _"+ages.indexOf(d.AGE);
+                    .attr("class", "firstCountryPath")
+                    .on("mouseover", function() {
+                        return age_hoverin(filtSingleOccDataPerAgesFirst, true, 3, filtDataOccupationFirst, filtDataOccupationSecond);
                     })
-                    .style("fill", function(d,i) { 
+                    .append("path")
+                    .attr("class", "line")  
+                    .attr("d", function(d) {
+                        return lineGenerator(d);
+                    })
+                    .style("stroke", function(d,i) { 
+                        return moreColor(i);
+                    })
+                    .style("opacity", lineOpacity);
+        
+                if (firstCountryChanged) {
+                    //FIRST COUNTRY- Enter Circles
+                    selection = age_lines.selectAll("circle-group").data(filtSingleOccDataPerAgesFirst);
+                    selection.enter()
+                        .append("g")
+                        .attr("class", function(d,i){
+                            return "firstCountryCircles _"+ages.indexOf(d.AGE);
+                        })
+                        .style("fill", function(d,i) { return moreColor(i)})
+                        .selectAll("circle")
+                        .data(function(d) { return d}).enter()
+                        .append("g")
+                        .attr("class", "circle")  
+                        .append("circle")
+                        .attr("id", function(d) {
+                            return nameReplacedFirst+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
+                        })
+                        .attr("cx", w)
+                        .attr("cy", function(d) { return age_yScale(d.Value);})
+                        .attr("r", circleRadius)
+                        .style("opacity", circleOpacity);
+                }
+                
+                //FIRST COUNTRY- update circles
+                selection = age_lines.selectAll(".firstCountryCircles").selectAll("#"+nameReplacedFirst+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation));
+                selection.transition()
+                    .duration(updateDuration)
+                    .attr("cx", function(d) { return xTimeScale(d.TIME);})
+                    .attr("cy", function(d) { 
+                        return age_yScale(d.Value);
+                    });
+                selection = age_lines.selectAll(".firstCountryCircles");
+                selection.on("mouseover", function() {
+                    return age_hoverin(filtSingleOccDataPerAgesFirst, true, 3, filtDataOccupationFirst, filtDataOccupationSecond);
+                });
+            }
+        
+            if (secondCountryExists == true && invalidDataTwo == false)
+            {
+                //SECOND COUNTRY- Enter Lines
+                selection = age_lines.selectAll("line-group").data(filtSingleOccDataPerAgesSecond);
+                selection.enter()
+                    .append("g")
+                    .attr("class", "secondCountryPath")
+                    .on("mouseover", function() {
+                        return age_hoverin(filtSingleOccDataPerAgesSecond, false, 3, filtDataOccupationFirst, filtDataOccupationSecond);
+                    })
+                    .append("path")
+                    .attr("class", "line")  
+                    .attr("d", function(d) {
+                        return lineGenerator(d);
+                    })
+                    .style("stroke", function(d,i) { 
                         return moreColor(i+2);
                     })
-                    .selectAll("circle")
-                    .data(function(d) { return d}).enter()
-                    .append("g")
-                    .attr("class", "circle")  
-                    .append("circle")
-                    .attr("id", function(d) {
-                        return nameReplacedSecond+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
-                    })
-                    .attr("cx", w)
-                    .attr("cy", function(d) { return age_yScale(d.Value);})
-                    .attr("r", circleRadius)
-                    .style("opacity", circleOpacity);
+                    .style("opacity", lineOpacity);
+            
+                if (secondCountryChanged) {
+            
+                    //SECOND COUNTRY- Enter circles
+                    selection = age_lines.selectAll("circle-group").data(filtSingleOccDataPerAgesSecond);
+                    selection.enter()
+                        .append("g")
+                        .attr("class", function(d,i){
+                            return "secondCountryCircles _"+ages.indexOf(d.AGE);
+                        })
+                        .style("fill", function(d,i) { 
+                            return moreColor(i+2);
+                        })
+                        .selectAll("circle")
+                        .data(function(d) { return d}).enter()
+                        .append("g")
+                        .attr("class", "circle")  
+                        .append("circle")
+                        .attr("id", function(d) {
+                            return nameReplacedSecond+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
+                        })
+                        .attr("cx", w)
+                        .attr("cy", function(d) { return age_yScale(d.Value);})
+                        .attr("r", circleRadius)
+                        .style("opacity", circleOpacity);
+                }
+                
+                //SECOND COUNTRY- update circles
+                selection = age_lines.selectAll(".secondCountryCircles").selectAll("#"+nameReplacedSecond+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation));
+                selection.transition()
+                    .duration(updateDuration)
+                    .attr("cx", function(d) { return xTimeScale(d.TIME);})
+                    .attr("cy", function(d) { return age_yScale(d.Value);});
+                selection = age_lines.selectAll(".secondCountryCircles");
+                selection.on("mouseover", function() {
+                    return age_hoverin(filtSingleOccDataPerAgesSecond, false, 3, filtDataOccupationFirst, filtDataOccupationSecond);
+                });
+                
             }
-            
-            //SECOND COUNTRY- update circles
-            selection = age_lines.selectAll(".secondCountryCircles").selectAll("#"+nameReplacedSecond+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation));
-            selection.transition()
-                .duration(updateDuration)
-                .attr("cx", function(d) { return xTimeScale(d.TIME);})
-                .attr("cy", function(d) { return age_yScale(d.Value);});
-            selection = age_lines.selectAll(".secondCountryCircles");
-            selection.on("mouseover", function() {
-                return age_hoverin(filtSingleOccDataPerAgesSecond, false, 3, filtDataOccupationFirst, filtDataOccupationSecond);
-            });
-            
-        }
 
-        if (bothCountryData.length != 0)
-        {
+            if (bothCountryData.length != 0)
+            {
 
-            //Line charts legend enter
-            age_legendOccLine.selectAll(".legendDots")
-                .data(bothCountryData)
-                .enter()
-                .append("circle")    
-                    .attr("cx", 20)
-                    .attr("cy", function(d,i) {
-                        return 20 + i*30;
-                    })  
-                    .attr("r", 7)
-                    .style("fill", function(d,i) { return moreColor(i)});
-        
-            age_legendOccLine.selectAll("labels").data(bothCountryData)
+                //Line charts legend enter
+                age_legendOccLine.selectAll(".legendDots")
+                    .data(bothCountryData)
                     .enter()
-                    .append("foreignObject")
-                    .attr("x", 40)
-                    .attr("y", function(d,i){ return 11 + i*30}) 
-                    .attr("width", 400)
-                    .attr("height", 35)
-                    .append("xhtml:body")
-                        .style("font", "14px 'Helvetica Neue'")
-                        .style("color", function(d,i){ return moreColor(i)})
-                        .html(function(d) {
-                            if (d.length != 0)
-                                return d[0].GEO+", "+d[0].AGE;
-                            else
-                                return;
-                        });
+                    .append("circle")    
+                        .attr("cx", 20)
+                        .attr("cy", function(d,i) {
+                            return 20 + i*30;
+                        })  
+                        .attr("r", 7)
+                        .style("fill", function(d,i) { return moreColor(i)});
+            
+                age_legendOccLine.selectAll("labels").data(bothCountryData)
+                        .enter()
+                        .append("foreignObject")
+                        .attr("x", 40)
+                        .attr("y", function(d,i){ return 11 + i*30}) 
+                        .attr("width", 400)
+                        .attr("height", 35)
+                        .append("xhtml:body")
+                            .style("font", "14px 'Helvetica Neue'")
+                            .style("color", function(d,i){ return moreColor(i)})
+                            .html(function(d) {
+                                if (d.length != 0)
+                                    return d[0].GEO+", "+d[0].AGE;
+                                else
+                                    return;
+                            });
+            }
         }
-    }
 }
 
 
@@ -3094,7 +3103,7 @@ function hoverin (dataset, isFirstCountry, id, firstScaleDataset, secondScaleDat
                     })
                     .attr("text-anchor", "middle")
                     .attr("x", (w-margin.top)/2)
-                    .attr("y", 15)
+                    .attr("y", 20)
                     .attr("font-size", textSize);
                 })
                 .on("mouseout", function(d) {
@@ -3152,7 +3161,7 @@ function hoverin (dataset, isFirstCountry, id, firstScaleDataset, secondScaleDat
                         })
                         .attr("text-anchor", "middle")
                         .attr("x", (w-margin.top)/2)
-                        .attr("y", 15)
+                        .attr("y", 20)
                         .attr("font-size", textSize);
 
                     })
@@ -3191,7 +3200,7 @@ function hoverin (dataset, isFirstCountry, id, firstScaleDataset, secondScaleDat
                 .text(d[0].GEO+", "+d[0].SEX)
                 .attr("text-anchor", "middle")
                 .attr("x", (w-margin.top)/2)
-                .attr("y", 15);
+                .attr("y", 20);
             })
             .on("mouseout", function(d) {
                 occLineChart.select(".title-text").remove();
@@ -3346,7 +3355,7 @@ function age_hoverin(dataset, isFirstCountry, id, firstScaleDataset, secondScale
                     })
                     .attr("text-anchor", "middle")
                     .attr("x", (w-margin.top)/2)
-                    .attr("y", 15)
+                    .attr("y", 20)
                     .attr("font-size", textSize);
                 })
                 .on("mouseout", function(d) {
@@ -3399,7 +3408,7 @@ function age_hoverin(dataset, isFirstCountry, id, firstScaleDataset, secondScale
                         })
                         .attr("text-anchor", "middle")
                         .attr("x", (w-margin.top)/2)
-                        .attr("y", 15)
+                        .attr("y", 20)
                         .attr("font-size", textSize);
 
                     })
@@ -3439,7 +3448,7 @@ function age_hoverin(dataset, isFirstCountry, id, firstScaleDataset, secondScale
                 .text(d[0].GEO+", "+d[0].AGE)
                 .attr("text-anchor", "middle")
                 .attr("x", (w-margin.top)/2)
-                .attr("y", 15);
+                .attr("y", 20);
             })
             .on("mouseout", function(d) {
                 age_occLineChart.select(".title-text").remove();

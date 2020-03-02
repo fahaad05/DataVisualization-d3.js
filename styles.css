@@ -10,3 +10,7 @@
     fill: none;
     opacity: 0.25;
 }
+
+.tick line {
+    stroke: #C0C0BB !important;
+  }

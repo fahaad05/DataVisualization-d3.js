@@ -90,11 +90,58 @@
                         </div>
                     
                     </div>
-                    
+
                     <!-- STUDIO RELATIVO ALLE FASCE DI ETA' -->
                     <div id="age" class="tab-pane fade mt-2" role="tabpanel" aria-labelledby="age-tab">
-                        <h3>Age Study</h3> 
-                        <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                        <div class="row">
+                        
+                            <form class="form-inline" id = "age_Menu">
+                                <label for="age_firstCountrySelected" class="my-1 mr-1"><b>First Country Selected</b></label>
+                                <input type="text" readonly class="my-1 mr-sm-2 form-control-plaintext col-sm-2 pl-2" id="age_firstCountrySelected">
+                                <label class="my-1 mr-2" for="age_secondCountrySelected"><b>Second Country</b></label>
+                                <select class="custom-select my-1 mr-sm-2" id="age_secondCountrySelected">
+                                    <option value="default" selected>None...</option>
+                                </select>
+                            
+                                <label class="my-1 mr-2" for="age_yearSelected"><b>Year</b></label>
+                                <select class="custom-select my-1 mr-sm-2" id="age_yearSelected">
+                                </select>
+                            
+                                <button type="button" class="btn btn-primary my-1" onclick="age_countryRedirectUpdate()">Submit</button>
+                            </form>
+                            <div class="d-flex flex-row border-bottom">
+                                <div id="age_activities"></div>
+                                <div id="age_activitiesAlert" class="d-flex flex-column"></div>
+                            </div>
+
+                            <form class="form-inline" id = "age_activitiesMenu">
+                                <label class="my-1 mr-2 mt-2" for="age_activitySelected"><b>Activity Selected: </b></label>
+                                <select class="custom-select my-1 mr-sm-2 mt-2" id="age_activitySelected">
+                                </select>
+                                <button type="button" class="btn btn-primary my-1 mt-2" onclick="age_activityRedirectUpdate()">Submit</button>
+
+                            </form>
+                            <div class="d-flex flex-row border-bottom">
+                                <div id="age_occ_scatt"></div>
+                                <div id="age_occupationAlert" class="d-flex flex-column"></div>
+                            </div>
+
+                            <form class="form-inline" id = "age_occupationsMenu">
+                                <label class="my-1 mr-2 mt-2" for="age_occupationSelected"><b>Occupation Selected: </b></label>
+                                <select class="custom-select my-1 mr-sm-2 mt-2" id="age_occupationSelected">
+                                </select>
+                                <label class="my-1 mr-2 mt-2" for="age_ageSelected"><b>Age Selected: </b></label>
+                                <select class="custom-select my-1 mr-sm-2 mt-2" id="age_ageSelected">
+                                    <option value="allAges" selected>All...</option>
+                                </select>
+                                <button type="button" class="btn btn-primary my-1 mt-2" onclick="age_occupationRedirectUpdate()">Submit</button>
+                                
+                            </form>
+                            <div class="d-flex flex-row">
+                                <div id="age_occ_lineChart"></div>
+                                <div id="age_ageLineChartAlert" class="d-flex flex-column"></div>
+                            </div>
+                        </div>
                     </div>
             </div>
         </div>
@@ -108,5 +155,6 @@
 
     <!-- Funzioni D3 -->
     <script type="application/javascript" src="script.js?version=1"></script>
+
 </body>
 </html>

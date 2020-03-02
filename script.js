@@ -3,6 +3,7 @@ var countries = [];
 var activities = [];
 var occupations = [];
 var years = [];
+var ages = [];
 
 var margin,
     h,
@@ -12,15 +13,31 @@ var firstCountry,
     secondCountry,
     selectedActivity,
     selectedOccupation,
-    selectedYear;
+    selectedYear,
+    selectedAge;
 
 var xScale,
+    xScaleMales,
     yScale,
+    yScaleFemales,
     xAxis,
+    yAxis,
+    xAxisGender,
+    yAxisGender,
+    xTimeAxis,
     lineGenerator,
     xTimeScale,
-    lines,
-    color;
+    occColor,
+    actColor,
+    color,
+    moreColor;
+
+var age_xScale,
+    age_yScale,
+    age_xAxis,
+    age_yAxis,
+    age_lineGenerator;
+
 
 var lineOpacity,
     lineOpacityHover,
@@ -50,7 +67,19 @@ var actScatt,
     legendOccupations,
     occLineChart,
     occLineChart,
+    lines,
     legendOccLine;
+
+var age_actScatt,
+    age_actChart,
+    age_legendActivities,
+    age_occScatt,
+    age_occChart,
+    age_legendOccupations,
+    age_occLineChart,
+    age_occLineChart,
+    age_lines,
+    age_legendOccLine;
    
 /**
  * Inizializzazione delle variabili globali
@@ -66,8 +95,10 @@ function globalVar() {
     secondCountry = "default";
     selectedActivity = "Business economy";
     selectedOccupation = "Managers";
+    selectedAge = "allAges";
 
-    color = d3.scaleOrdinal(d3.schemeCategory10)
+    color = d3.scaleOrdinal(d3.schemeCategory10);
+    moreColor = d3.scaleOrdinal(d3.schemeCategory20);
 
     lineOpacity = "0.25";
     lineOpacityHover = "0.85";
@@ -93,15 +124,33 @@ function globalVar() {
                 .attr("width", w + margin.right + margin.left)
                 .attr("height", h + margin.top + margin.bottom);
 
+    age_actScatt = d3.select("#age_activities")
+                .append("svg")
+                .attr("width", w + margin.right + margin.left)
+                .attr("height", h + margin.top + margin.bottom);
+
     actChart = actScatt.append("g")
                 .attr("transform", "translate(" + margin.left+ "," + margin.top + ")")
                 .attr("width", w)
                 .attr("height", h)
                 .attr("class", "main");
 
+    age_actChart = age_actScatt.append("g")
+                .attr("transform", "translate(" + margin.left+ "," + margin.top + ")")
+                .attr("width", w)
+                .attr("height", h)
+                .attr("class", "main");
+
     legendActivities = d3.select("#activitiesAlert").append("svg").attr("height", 250).attr("width", 450).attr("class", "pt-5");
+    
+    age_legendActivities = d3.select("#age_activitiesAlert").append("svg").attr("height", 250).attr("width", 450).attr("class", "pt-5");
 
     occScatt = d3.select("#occ_scatt")
+                .append("svg")
+                .attr("width", w + margin.right + margin.left)
+                .attr("height", h + margin.top + margin.bottom);
+
+    age_occScatt = d3.select("#age_occ_scatt")
                 .append("svg")
                 .attr("width", w + margin.right + margin.left)
                 .attr("height", h + margin.top + margin.bottom);
@@ -112,9 +161,22 @@ function globalVar() {
                 .attr("height", h)
                 .attr("class", "main");
 
+    age_occChart = age_occScatt.append("g")
+                .attr("transform", "translate(" + margin.left+ "," + margin.top + ")")
+                .attr("width", w)
+                .attr("height", h)
+                .attr("class", "main");
+
     legendOccupations = d3.select("#occupationAlert").append("svg").attr("height", h-100).attr("width", 450).attr("class", "pt-5");
 
+    age_legendOccupations = d3.select("#age_occupationAlert").append("svg").attr("height", h-100).attr("width", 450).attr("class", "pt-5");
+
     occLineChart = d3.select("#occ_lineChart")
+                .append("svg")
+                .attr("width", w + margin.right + margin.left)
+                .attr("height", h + margin.top + margin.bottom);
+
+    age_occLineChart = d3.select("#age_occ_lineChart")
                 .append("svg")
                 .attr("width", w + margin.right + margin.left)
                 .attr("height", h + margin.top + margin.bottom);
@@ -124,10 +186,17 @@ function globalVar() {
                 .attr("width", w)
                 .attr("height", h)
                 .attr("class", "main lines");
+
+    age_occLineChart = age_occLineChart.append("g")
+                .attr("transform", "translate(" + margin.left+ "," + margin.top + ")")
+                .attr("width", w)
+                .attr("height", h)
+                .attr("class", "main lines");
            
     legendOccLine = d3.select("#genderLineChartAlert").append("svg").attr("height", 220).attr("width", 450).attr("class", "pt-5");
+           
+    age_legendOccLine = d3.select("#age_genderLineChartAlert").append("svg").attr("height", 220).attr("width", 450).attr("class", "pt-5");
 }
-
 
 
 /**
@@ -157,6 +226,7 @@ function radioList() {
 
 
 /**
+ * GENDER
  * Inizializzazione dei contenuti dei menu select e degli input presenti nei form del tab gender
  */
 function gender_menu() {
@@ -214,7 +284,73 @@ function gender_menu() {
 }
 
 
+function age_menu() {
+
+    //Menu select per il secondo paese
+    d3.select("#age_Menu").select("#age_secondCountrySelected")
+        .selectAll(".option")
+        .data(countries)
+        .enter()
+        .append("option")
+            .attr("id", function (d){ return d.split(" ")[0]; })
+            .attr("value", function(d) { return d; })
+            .attr("label", function (d){ 
+                
+                if (d.split(" ").length > 2) {
+                    if (d.split(" ")[0] == "Germany") 
+                        return d.split(" ")[0];
+                    else
+                        return d.split(" ")[0] + " " + d.split(" ")[1];
+                }
+                else
+                    return d.split(" ")[0];
+            });
+
+    //Menu select per gli anni
+    d3.select("#age_Menu").select("#age_yearSelected")
+        .selectAll(".option")
+        .data(years)
+        .enter()
+        .append("option")
+            .attr("id", function (d) { return "_"+d.getFullYear().toString(); })
+            .attr("value", function(d) { return d.getFullYear().toString(); })
+            .attr("label", function(d) { return d.getFullYear().toString();});
+
+    //Menu select per le attività  
+    d3.select("#age_activitiesMenu").select("#age_activitySelected")
+        .selectAll(".option")
+        .data(activities)
+        .enter()
+        .append("option")
+        .attr("id", function(d) { return d.split(" ")[0]})
+        .attr("value", function(d) { return d; })
+        .attr("label", function(d) { return d; });
+    
+    //Menu select per le occupazioni
+    d3.select("#age_occupationsMenu").select("#age_occupationSelected")
+        .selectAll(".option")
+        .data(occupations)
+        .enter()
+        .append("option")
+            .attr("id", function(d,i) { return "o_"+i})
+            .attr("value", function(d) { return d; })
+            .attr("label", function(d) { return d; });
+    
+    //Menu select per le occupazioni
+    d3.select("#age_occupationsMenu").select("#age_ageSelected")
+        .selectAll(".option")
+        .data(ages)
+        .enter()
+        .append("option")
+            .attr("id", function(d,i) { return "a_"+i})
+            .attr("value", function(d) { return d; })
+            .attr("label", function(d) { return d; });
+    
+}
+
+
 /**
+ * GENDER
  * Effettua il redirect per il bottone che effettua il select del secondo paese e dell'anno
  */
 function countryRedirectUpdate() {
@@ -248,7 +384,39 @@ function countryRedirectUpdate() {
 }
 
 
+function age_countryRedirectUpdate() {
+    
+    //Leggo il secondo paese selezionato nel menu
+    var secondCountrySelect = $("#age_secondCountrySelected :selected").val();
+    var checkSelectedYear = $("#age_yearSelected :selected").val();
+
+    if (secondCountrySelect != secondCountry)
+        return age_updateCountryCharts(firstCountry, secondCountrySelect, checkSelectedYear);
+    
+
+    //E' stato cambiato solamente l'anno, sono da aggiornare i due grafici delle activities e delle occupations
+    if (checkSelectedYear != selectedYear){
+        selectedYear = checkSelectedYear;
+        var secondCountryExists = true;
+        if (secondCountry == "default")
+        {
+            secondCountryExists = false;
+            age_removeOldData(true, 1);
+        }
+        else
+            age_removeOldData(false, 1);
+
+        //aggiornamento dei charts corrispondenti
+        age_updateActivitiesChart(false, false, secondCountryExists, true);
+        age_updateOccupationsChart(false, false, secondCountryExists, true);
+        return;
+    }
+    
+}
+
+
 /**
+ * GENDER
  * Effettua il redirect per il bottone che effettua il select delle attivtà
  */
 function activityRedirectUpdate() {
@@ -273,7 +441,30 @@ function activityRedirectUpdate() {
 }
 
 
+function age_activityRedirectUpdate() {
+    
+    var checkSelectedActivity = $("#age_activitySelected :selected").val();
+
+    //L'unico chart da aggiornare è quello delle occupazioni 
+    if (checkSelectedActivity != selectedActivity)
+    {
+        var secondCountryExists = true;
+        if (secondCountry == "default") {
+            secondCountryExists = false;
+            age_removeOldData(true, 2);
+        }
+        else
+            age_removeOldData(false, 2);
+
+        //aggiornamento del chart
+        selectedActivity = checkSelectedActivity;
+        age_updateOccupationsChart(true, true, secondCountryExists, false);
+    }
+}
+
+
 /**
+ * GENDER
  * Effettua il redirect per il bottone che effettua il select dell'occupazione
  */
 function occupationRedirectUpdate() {
@@ -299,7 +490,33 @@ function occupationRedirectUpdate() {
 }
 
 
+function age_occupationRedirectUpdate() {
+    
+    var checkSelectedOccupation = $("#age_occupationSelected :selected").val();
+    var checkSelectedAge = $("#age_ageSelected :selected").val();
+
+    //L'unico chart da aggiornare è il line chart
+    if (checkSelectedOccupation != selectedOccupation || checkSelectedAge != selectedAge)
+    {
+        var secondCountryExists = true;
+        if (secondCountry == "default")
+        {
+            secondCountryExists = false;
+            age_removeOldData(true, 3);
+        }
+        else
+            age_removeOldData(false,3);
+
+        //aggiorna il chart delle linee
+        selectedAge = checkSelectedAge;
+        selectedOccupation = checkSelectedOccupation;
+        age_updateLineCharts(true, true, secondCountryExists);
+    }
+}
+
+
 /**
+ * GENDER
  * Calcola le operazioni di scaling iìper i dataset passati come parametri
  * @param {*} dataset Dataset di cui effettuare lo scaling
  * @param {*} secondDataset Secondo dataset di cui effettuare lo scaling in contemporanea al primo, NULL di default
@@ -353,8 +570,9 @@ function scaling(dataset, secondDataset = null) {
     var checkMinValue_males;
     var checkMinValue_females;
 
+    //per evitare che per paesi con salari troppo bassi risultino negli assi valori negativi
     if ((min_xy_males-avg_xy_males) < 0) 
-        checkMinValue_males = 01;
+        checkMinValue_males = 0;
     else 
         checkMinValue_males = min_xy_males-avg_xy_males;
     
@@ -363,6 +581,7 @@ function scaling(dataset, secondDataset = null) {
     else 
         checkMinValue_females = min_xy_females-avg_xy_females;
     
+
     xScale = d3.scaleLinear()
         .domain([min_xy-avg_xy, max_xy+avg_xy])
         .range([0, w]);
@@ -427,11 +646,92 @@ function scaling(dataset, secondDataset = null) {
     actColor = d3.scaleOrdinal()
             .domain(activities)
             .range(d3.schemeCategory10);
+}
+
+
+function age_scaling(dataset, secondDataset = null) {
+
+    //E' presente solo un dataset passato di cui effettuare lo scaling
+    if (secondDataset == null) {
+        var min_xy = +d3.min(dataset, function(d) { return d.Value;});
+        var max_xy = +d3.max(dataset, function(d) { return d.Value;});
+        var avg_xy = +(max_xy - min_xy)/dataset.length;
+
+    }
+    else
+    {
+        var check = 0;
+        check = +d3.min(dataset, function(d) { return d.Value;});
+        var min_xy = +d3.min(secondDataset, function(d) { return d.Value;});
+        if (check < min_xy) min_xy = check;
+        check = +d3.max(dataset, function(d) { return d.Value;});
+        var max_xy = +d3.max(secondDataset, function(d) { return d.Value;});
+        if (check > max_xy) max_xy = check;
+        var avg_xy = +(max_xy - min_xy)/dataset.length;
+    }
+
+    var checkMinValue;
+
+    //per evitare che per paesi con salari troppo bassi risultino negli assi valori negativi
+    if ((min_xy-avg_xy) < 0) 
+        checkMinValue = 0;
+    else 
+        checkMinValue = min_xy-avg_xy;
+
+    age_xScale = d3.scalePoint()
+                .domain(ages)
+                .range([0,w]);
+
+    age_yScale = d3.scaleLinear()
+                .domain([checkMinValue, max_xy+avg_xy])
+                .range([h, 0]);
+
+    
+    //Per non avere troppi ticks negli assi dovuti a risultati troppo numerosi
+    var ticksNumb;
+    if (dataset.length > 8 || (secondDataset != null && secondDataset.length > 8))
+        ticksNumb = 8;
+    else 
+        ticksNumb = dataset.length;
+            
+    age_xAxis = d3.axisBottom()
+                .scale(age_xScale)
+                .ticks(ages.length);
+
+    age_yAxis = d3.axisLeft()
+                .scale(age_yScale)
+                .ticks(ticksNumb);
+
+    xTimeScale = d3.scaleTime()
+                .domain(d3.extent(years))
+                .range([0, w]);
+    
+    lineGenerator = d3.line()
+                .x(function(d) {
+                    return xTimeScale(d.TIME);
+                })
+                .y(function(d) {
+                    return age_yScale(d.Value);
+                });
+
+    xTimeAxis = d3.axisBottom()
+                .scale(xTimeScale)
+                .ticks(years.length);
+
+    occColor = d3.scaleOrdinal()
+                .domain(occupations)
+                .range(d3.schemeCategory20);
+    
+    actColor = d3.scaleOrdinal()
+                .domain(activities)
+                .range(d3.schemeCategory10);
+        
 
 }
 
 
 /**
+ * GENDER
  * Dato un dataset raggruppa tutte le voci in base al genere
  * @param {*} dataset Dataset in esame
  * @param {String} country Paese in esame
@@ -529,7 +829,27 @@ function getDataPerGender(dataset, country, act, occ, checkYears) {
 }
 
 
+function getDataPerAge(dataset, country, act, occ) {
+
+    var ageData = [];
+    var dataPerAges = [];
+
+    //Vado a filtrare il dataset per fasce d'età e le aggiungo al risultato finale solo 
+    //se sono validi e quindi c'è almeno un calore
+    ages.forEach(function(d,i) {
+
+        ageData = filterData(dataset, country, act, occ, "Total", ages[i], true);
+        if (ageData.length != 0)
+            dataPerAges.push(ageData);
+
+    })
+
+    return dataPerAges;
+}
+
+
 /**
+ * GENDER
  * Effettua l'inizializzazione dei charts del tab dello studio del genere
  */
 function genderStudyCharts() {
@@ -789,24 +1109,24 @@ function genderStudyCharts() {
                 .style("opacity", lineOpacity)
         
       
-      //Aggioungo i cerchi nelle linee
-      lines.selectAll("circle-group")
-        .data(bothGenderFilt).enter()
+    //Aggiungo i cerchi nelle linee
+    lines.selectAll("circle-group")
+    .data(bothGenderFilt).enter()
+    .append("g")
+        .attr("class", function(d,i){
+            return "firstCountryCircles _"+i;
+        })
+        .style("fill", function(d,i) { return color(i)})
+        .selectAll("circle")
+        .data(function(d) { return d}).enter()
         .append("g")
-            .attr("class", function(d,i){
-                return "firstCountryCircles _"+i;
-            })
-            .style("fill", function(d,i) { return color(i)})
-            .selectAll("circle")
-            .data(function(d) { return d}).enter()
-            .append("g")
-                .attr("class", "circle")  
-                .append("circle")
-                    .attr("id", function(d) { return nameReplacedFirst+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation); })
-                    .attr("cx", function(d) { return xTimeScale(d.TIME);})
-                    .attr("cy", function(d) { return yScale(d.Value);})
-                    .attr("r", circleRadius)
-                    .style("opacity", circleOpacity)
+            .attr("class", "circle")  
+            .append("circle")
+                .attr("id", function(d) { return nameReplacedFirst+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation); })
+                .attr("cx", function(d) { return xTimeScale(d.TIME);})
+                .attr("cy", function(d) { return yScale(d.Value);})
+                .attr("r", circleRadius)
+                .style("opacity", circleOpacity)
         
     hoverin(bothGenderFilt, true, 3, filtSingleOccData);
 
@@ -850,16 +1170,334 @@ function genderStudyCharts() {
         .attr("role", "alert")
         .attr("id", "occLineAlertSecond");
 
+
     // ad ogni cambiamento nel menu radio buttons viene renindirizzato il tutto al metodo update generale
     $("input[type='radio']").on("change", function(){
         var radioCountry = $("input[name='countriesList']:checked").val();
-        updateCountryGenderCharts(radioCountry, secondCountry, selectedYear);
+        
+        //Reindirizzamento al metodo update in base al tab attivo
+        var activeTab = $(".tab-content").find(".active");
+        var id = activeTab.attr('id');
+
+        if (id = "gender")
+            updateCountryGenderCharts(radioCountry, secondCountry, selectedYear);
+        else
+            age_updateCountryCharts(radioCountry, secondCountry, selectedYear);
     });
         
 }
 
 
+function ageStudyCharts() {
+
+    var nameReplacedFirst = firstCountry.split(' ')[0];
+    //inizializzazione della voce con attributo "selected" nei menu select
+    d3.select("#age_yearSelected").select("#_"+selectedYear).attr("selected", true);
+    d3.select("#age_firstCountrySelected").attr("value", firstCountry);
+    d3.select("#age_activitySelected").select("#"+selectedActivity.split(" ")[0]).attr("selected", true);
+    d3.select("#age_occupationSelected").select("#o_1").attr("selected", true);
+    d3.select("#age_ageSelected").select("#allAges").attr("selected", true);
+    
+    //===========================================================================================
+    //===========================================================================================
+    //================================      ACTIVITIES      =====================================
+    //===========================================================================================
+    //===========================================================================================
+
+    
+    var filtData = filterData(data, firstCountry, "allActivities", "Total", "Total", "allAges", false);
+    filtData = removeInvalidData(filtData);
+    age_scaling(filtData);
+
+       
+    age_actChart.append("g")
+            .attr("transform", "translate(0," + h + ")")
+            .attr("class", "x axis")
+            .call(age_xAxis);
+
+    age_actChart.append("g")
+            .attr("transform", "translate(0,0)")
+            .attr("class", "y axis")
+            .call(age_yAxis);
+
+    age_actChart.append("defs").append("clipPath")
+            .attr("id", "clip")
+            .append("rect")
+                .attr("class", "clip-rect")
+                .attr("x", "0")
+                .attr("y", "0")
+                .attr("width", w)
+                .attr("height", h);
+
+    age_actChart.append("g").attr("clip-path","url(#clip)").attr("id", "clipPath")
+                .selectAll(".dots")
+                .data(filtData)
+                .enter()
+                .append("g")
+                    .attr("class", "g actChart firstCountryPath")
+                    .append("path")
+                        .attr("id", function(d) {
+                            return nameReplacedFirst+"_"+selectedYear;
+                        })
+                        .attr("class", "firstCountryPath")
+                        .attr("d", symbol.type( function (d){
+                            return d3.symbolCircle;
+                        }))
+                        .attr("transform", function(d) {
+                            return "translate("+ age_xScale(d.AGE) + ","+ age_yScale(d.Value) + " )";
+                        })
+                        .style("stroke", function(d,i) { 
+                            return actColor(d.NACE_R2);
+                        })
+                        .style("fill", function(d,i) { 
+                            return actColor(d.NACE_R2);
+                        });
+    
+    age_hoverin(filtData, true, 1, filtData);
+
+    //legenda delle activities
+    age_legendActivities.selectAll(".legendDots")
+            .data(activities)
+            .enter()
+            .append("circle")
+                .attr("cx", 20)
+                .attr("cy", function(d,i) {
+                    return 20 + i*30;
+                })
+                .attr("r", 7)
+                .style("fill", function(d) { return actColor(d)});
+
+    age_legendActivities.selectAll("labels")
+            .data(activities)
+            .enter()
+            .append("foreignObject")
+                .attr("x", 40)
+                .attr("y", function(d,i){ return 11 + i*30})
+                .attr("width", 350)
+                .attr("height", 35)
+                .append("xhtml:body")
+                    .style("font", "14px 'Helvetica Neue'")
+                    .style("color", function(d){ return actColor(d)})
+                    .html(function(d) {
+                        return d;
+                    });
+
+    //alert box
+    d3.select("#age_activitiesAlert").append("div")
+            .attr("class", "alert alert-danger alert-dismissible fade")
+            .text("Some data are missing in the first country")
+            .attr("role", "alert")
+            .attr("id", "age_actAlertFirst");
+    
+    d3.select("#age_activitiesAlert").append("div")
+            .attr("class", "alert alert-danger alert-dismissible fade")
+            .text("Some data are missing in the second country!")
+            .attr("role", "alert")
+            .attr("id", "age_actAlertSecond");
+    
+   
+    //===========================================================================================
+    //===========================================================================================
+    //================================      OCCUPATION      =====================================
+    //===========================================================================================
+    //===========================================================================================
+    
+    var filtDataOccupations = filterData(data, firstCountry, selectedActivity, "allOccupations", "Total", "allAges", false);
+    filtDataOccupations = removeInvalidData(filtDataOccupations);
+    age_scaling(filtDataOccupations);
+    
+    age_occChart.append("g")
+            .attr("transform", "translate(0," + h + ")")
+            .attr("class", "x axis")
+            .call(age_xAxis);
+    
+    age_occChart.append("g")
+            .attr("transform", "translate(0,0)")
+            .attr("class", "y axis")
+            .call(age_yAxis);
+
+    age_occChart.append("defs").append("clipPath")
+            .attr("id", "clip_occ_sel")
+            .append("rect")
+                .attr("class", "clip-rect")
+                .attr("x", "0")
+                .attr("y", "0")
+                .attr("width", w)
+                .attr("height", h);
+
+
+    age_occChart.append("g").attr("clip-path","url(#clip_occ_sel)").attr("id", "cliPathOcc")
+                .selectAll(".dots")
+                .data(filtDataOccupations)
+                .enter()
+                .append("g")
+                    .attr("class", "g occChart firstCountryPath")
+                    .append("path")
+                        .attr("id", function(d) {
+                            return nameReplacedFirst+"_"+selectedYear+"_"+activities.indexOf(selectedActivity);
+                        })
+                        .attr("class", "firstCountryPath")
+                        .attr("d", symbol.type( function (d){
+                            return d3.symbolCircle;
+                        }))
+                        .attr("transform", function(d) {
+                            return "translate("+ age_xScale(d.AGE) + ","+ age_yScale(d.Value) + " )";
+                        })
+                        .style("stroke", function(d,i) { 
+                            return occColor(d.ISCO08)
+                        })
+                        .style("fill", function(d,i) { 
+                            return occColor(d.ISCO08)
+                        });
+    
+    age_hoverin(filtDataOccupations, true, 2, filtDataOccupations);
+
+    //legenda
+    age_legendOccupations.selectAll(".legendDots")
+            .data(occupations)
+            .enter()
+            .append("circle")
+                .attr("cx", 20)
+                .attr("cy", function(d,i) {
+                    return 20 + i*30;
+                })
+                .attr("r", 7)
+                .style("fill", function(d) { return occColor(d)});
+
+    age_legendOccupations.selectAll("labels")
+            .data(occupations)
+            .enter()
+            .append("foreignObject")
+                .attr("x", 40)
+                .attr("y", function(d,i){ return 11 + i*30}) 
+                .attr("width", 350)
+                .attr("height", 35)
+                .append("xhtml:body")
+                    .style("font", "14px 'Helvetica Neue'")
+                    .style("color", function(d){ return occColor(d)})
+                    .html(function(d) {
+                        return d;
+                    });
+  
+    //alert box
+    d3.select("#age_occupationAlert").append("div")
+            .attr("class", "alert alert-danger alert-dismissible fade")
+            .text("Some data are missing in the first country!")
+            .attr("role", "alert")
+            .attr("id", "age_occAlertFirst");
+    
+    d3.select("#age_occupationAlert").append("div")
+            .attr("class", "alert alert-danger alert-dismissible fade")
+            .text("Some data are missing in the second country!")
+            .attr("role", "alert")
+            .attr("id", "age_occAlertSecond");
+
+        
+    //===========================================================================================
+    //===========================================================================================
+    //==========================      LINE CHART OCCUPATION      ================================
+    //===========================================================================================
+    //===========================================================================================
+    
+    var filtSingleOccData = filterData(data, firstCountry, selectedActivity, selectedOccupation, "Total", selectedAge, true);
+    filtSingleOccData = removeInvalidData(filtSingleOccData);
+    age_scaling(filtSingleOccData);
+
+    ageDataPerAges = getDataPerAge(filtSingleOccData, firstCountry, selectedActivity, selectedOccupation);
+    
+    age_occLineChart.append("g")
+        .attr("transform", "translate(0," + h + ")")
+        .attr("class", "x axis")
+        .call(xTimeAxis);
+    
+    age_occLineChart.append("g")
+        .attr("transform", "translate(0,0)")
+        .attr("class", "y axis")
+        .call(age_yAxis);
+
+    age_lines = age_occLineChart.append("g")
+        .attr("class", "lines");
+
+    age_lines.selectAll("line-group")
+        .data(ageDataPerAges).enter()
+        .append("g")
+            .attr("class", "firstCountryPath")
+            .append("path")
+                .attr("class", "line")  
+                .attr("d", function(d) {
+                    return lineGenerator(d);
+                })
+                .style("stroke", function(d,i) { return moreColor(i)})
+                .style("opacity", lineOpacity)
+            
+
+    //Aggiungo i cerchi nelle linee
+    age_lines.selectAll("circle-group")
+        .data(ageDataPerAges).enter()
+        .append("g")
+            .attr("class", function(d,i){
+                return "firstCountryCircles _"+ages.indexOf(d.Value);
+            })
+            .style("fill", function(d,i) { return moreColor(i)})
+            .selectAll("circle")
+            .data(function(d) { return d}).enter()
+            .append("g")
+                .attr("class", "circle")  
+                .append("circle")
+                    .attr("id", function(d) { return nameReplacedFirst+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation); })
+                    .attr("cx", function(d) { return xTimeScale(d.TIME);})
+                    .attr("cy", function(d) { return age_yScale(d.Value);})
+                    .attr("r", circleRadius)
+                    .style("opacity", circleOpacity)
+            
+    age_hoverin(ageDataPerAges, true, 3, filtSingleOccData);
+
+    
+    //legenda
+    age_legendOccLine.selectAll(".legendDots")
+            .data(ageDataPerAges)
+            .enter()
+            .append("circle")
+                .attr("cx", 20)
+                .attr("cy", function(d,i) {
+                    return 20 + i*30;
+                })
+                .attr("r", 7)
+                .style("fill", function(d,i) { return moreColor(i)});
+
+    age_legendOccLine.selectAll("labels")
+            .data(ageDataPerAges)
+            .enter()
+            .append("foreignObject")
+                .attr("x", 40)
+                .attr("y", function(d,i){ return 11 + i*30}) 
+                .attr("width", 400)
+                .attr("height", 35)
+                .append("xhtml:body")
+                    .style("font", "14px 'Helvetica Neue'")
+                    .style("color", function(d,i){ return moreColor(i)})
+                    .html(function(d) {
+                        return d[0].GEO+", "+d[0].AGE;
+                    });
+
+    //alert box     
+    d3.select("#age_ageLineChartAlert").append("div")
+        .attr("class", "alert alert-danger alert-dismissible fade")
+        .text("Some data are missing in the first country!")
+        .attr("role", "alert")
+        .attr("id", "age_occLineAlertFirst");
+                
+    d3.select("#age_ageLineChartAlert").append("div")
+        .attr("class", "alert alert-danger alert-dismissible fade")
+        .text("Some data are missing in the second country!")
+        .attr("role", "alert")
+        .attr("id", "age_occLineAlertSecond");
+
+}
+
+
 /**
+ * GENDER
  * Cancella i risultati dei precedenti charts in base al numero del "ticket" presentatogli
  * @param {Boolean} secondCountryDefault Controlla se il paese selezionato è nullo
  * @param {Number} allData Ticket per decidere quali charts eliminare
@@ -954,7 +1592,91 @@ function removeOldData(secondCountryDefault, allData = 0) {
 }
 
 
+function age_removeOldData(secondCountryDefault, allData = 0) {
+
+    if ( allData != 4) {
+
+        if (allData != 3) {
+                
+                if (allData != 2) 
+                {
+                    age_actChart.select("#clipPath").selectAll(".g.actChart.firstCountryPath")
+                            .transition()
+                            .duration(updateDuration)
+                            .remove();
+                }
+        
+                age_occChart.select("#cliPathOcc").selectAll(".g.occChart.firstCountryPath")
+                        .transition()
+                        .duration(updateDuration)
+                        .remove();
+        }
+    
+        if (allData != 1 && allData != 2)                
+        {
+            age_lines.selectAll(".firstCountryCircles").transition()
+                    .duration(updateDuration)
+                    .remove();
+        }
+    }
+    
+    if(secondCountryDefault == false && allData != 5) {
+
+        if (allData != 3) {
+
+            if (allData != 2) 
+            {
+                age_actChart.select("#clipPath").selectAll(".g.actChart.secondCountryPath")
+                        .transition()
+                        .duration(updateDuration)
+                        .remove();
+            }
+        
+            age_occChart.select("#cliPathOcc").selectAll(".g.occChart.secondCountryPath")
+                    .transition()
+                    .duration(updateDuration)
+                    .remove();
+        }
+                
+        if (allData != 1 && allData != 2) 
+        {
+            age_lines.selectAll(".secondCountryCircles").transition()
+                .duration(updateDuration)
+                .remove();
+        }
+    
+    }
+    if (allData != 1 && allData != 2) {
+
+        age_lines.selectAll(".firstCountryPath").transition()
+                .duration(updateDuration)
+                .remove();
+    
+        if (!secondCountryDefault) {
+            
+            age_lines.selectAll(".secondCountryPath").transition()
+                .duration(updateDuration)
+                .remove();
+        }
+        
+        age_legendOccLine.selectAll("circle")
+                .transition()
+                .duration(updateDuration)
+                .remove();
+    
+        age_legendOccLine.selectAll("foreignObject")
+                .transition()
+                .duration(updateDuration)
+                .remove();
+
+        $("#age_occLineAlertFirst").removeClass('show');
+        $("#age_occLineAlertSecond").removeClass('show');
+    }
+
+}
+
 /**
+ * GENDER
  * Aggiorna l'input box presente in alto per la voce del primo paese selezionato
  * @param {Boolean} isFirstCountryChanged Check se il primo paese è cambiato
  */
@@ -975,7 +1697,26 @@ function displayValues (isFirstCountryChanged) {
 }
 
 
+function age_displayValues(isFirstCountryChanged) {
+
+    
+    if (isFirstCountryChanged) {
+
+        //Visualizzazione del first Country
+        if (firstCountry.split(" ").length > 2) {
+            if (firstCountry.split(" ")[0] == "Germany") 
+                d3.select("#age_firstCountrySelected").attr("value", firstCountry.split(" ")[0]);
+            else
+                d3.select("#age_firstCountrySelected").attr("value", firstCountry.split(" ")[0]+ " " + firstCountry.split(" ")[1]);
+        }
+        else
+            d3.select("#age_firstCountrySelected").attr("value", firstCountry);
+    }
+}
+
+
 /**
+ * GENDER
  * Metodo generale per l'aggiornamento dei charts
  * @param {String} firstSelectedCountry Primo paese 
  * @param {String} secondSelectedCountry Secondo paese
@@ -1036,7 +1777,64 @@ function updateCountryGenderCharts(firstSelectedCountry, secondSelectedCountry, 
 }
 
 
+function age_updateCountryCharts(firstSelectedCountry, secondSelectedCountry, newSelectedYear) {
+
+      
+    var firstCountryChanged = false;
+    var secondCountryChanged = false;
+    var secondCountryDefault = false;
+    var yearChanged = false;
+    
+    //Check se il nuovo paese è lo stesso di quello precedente
+    if (firstSelectedCountry != firstCountry) 
+        firstCountryChanged = true; 
+     
+    if (secondSelectedCountry != secondCountry)
+        secondCountryChanged = true; 
+    else
+        if (secondSelectedCountry == "default")
+            secondCountryDefault = true;
+
+    firstCountry = firstSelectedCountry;
+    secondCountry = secondSelectedCountry;
+    
+    //Se è cambiato il primo paese aggiorno il valore nell'input box
+    age_displayValues(firstCountryChanged);
+    var secondCountryExists = true;
+
+    //Se è stato selezionato la voce default allora non occorre far vedere il secondo paese
+    if (secondCountry == "default")
+        secondCountryExists = false;
+    
+    //Uno dei due o entrambi i paesi sono cambiati, tutti i grafici sono da aggiornare
+    if (firstCountryChanged == true || secondCountryChanged == true)
+    {
+        if (newSelectedYear != selectedYear){
+            yearChanged = true;
+            selectedYear = newSelectedYear;
+        }
+        
+        //Effettua la rimozione in base ai paesi che son cambiati
+        if (firstCountryChanged == true && secondCountryChanged == true)
+            age_removeOldData(secondCountryDefault);
+        else 
+        {
+            if (firstCountryChanged)
+                age_removeOldData(secondCountryDefault, 5);
+            else
+                age_removeOldData(secondCountryDefault, 4);
+        }
+        
+        age_updateActivitiesChart(firstCountryChanged, secondCountryChanged, secondCountryExists, yearChanged);
+        age_updateOccupationsChart(firstCountryChanged, secondCountryChanged, secondCountryExists, yearChanged);
+        age_updateLineCharts(firstCountryChanged, secondCountryChanged, secondCountryExists, yearChanged);
+        return;
+    }
+    
+}
+
 /**
+ * GENDER
  * Aggiornamento del primo chart corrispondente alle activities
  * @param {Boolean} firstCountryChanged Se il primo paese è cambiato
  * @param {Boolean} secondCountryChanged Se il secondo paese è cambiato
@@ -1227,7 +2025,165 @@ function updateActivitiesChart(firstCountryChanged, secondCountryChanged, second
 }
 
 
+function age_updateActivitiesChart(firstCountryChanged, secondCountryChanged, secondCountryExists, yearChanged) {
+
+   
+    //tolgo gli alert box
+    $("#age_actAlertFirst").removeClass('show');  
+    $("#age_actAlertSecond").removeClass('show');  
+
+    var selection;
+    var invalidDataOne = false;
+    var invalidDataTwo = false;
+
+    var nameReplacedFirst = firstCountry.split(' ')[0];
+
+    var filtDataFirst = filterData(data, firstCountry, "allActivities", "Total", "Total", "allAges", false);
+    filtDataFirst = removeInvalidData(filtDataFirst);
+    
+    if (filtDataFirst.length == 0)
+    {
+        invalidDataOne = true;
+        $("#age_actAlertFirst").addClass('show');  
+    }
+
+    if (secondCountryExists) 
+    {
+        var nameReplacedSecond = secondCountry.split(' ')[0];
+        var filtDataSecond = filterData(data, secondCountry, "allActivities", "Total", "Total", "allAges", false);
+        filtDataSecond = removeInvalidData(filtDataSecond);
+        
+        if (filtDataSecond.length == 0)
+        {
+            invalidDataTwo = true;
+            $("#age_actAlertSecond").addClass('show');  
+        }
+
+        if (!invalidDataTwo) 
+        {
+            if (!invalidDataOne)
+                age_scaling(filtDataFirst, filtDataSecond);
+            else
+                age_scaling(filtDataSecond);
+        }
+        else
+        {
+            filtDataSecond = null;
+            if (!invalidDataOne)
+                age_scaling(filtDataFirst);
+        }
+
+    }
+    else
+    {
+        if (!invalidDataOne)
+            age_scaling(filtDataFirst);
+
+        var filtDataSecond = null;
+    }
+
+    if (invalidDataOne == false || (invalidDataTwo == false && secondCountryExists == true)) 
+    {
+        age_actChart.select(".x.axis")
+            .transition()
+            .duration(10)
+            .call(age_xAxis);
+    
+            age_actChart.select(".y.axis")
+            .transition()
+            .duration(updateDuration)
+            .call(age_yAxis);
+
+        if (!invalidDataOne) {
+    
+            if (firstCountryChanged == true || yearChanged == true) {
+        
+                //FIRST COUNTRY- Enter di nuovi elementi activities
+                selection = age_actChart.select("#clipPath").selectAll(".dots")
+                    .data(filtDataFirst);
+                selection.enter()
+                    .append("g")
+                    .attr("class", "g actChart firstCountryPath")
+                    .append("path")
+                    .attr("id", function(d) {
+                        return nameReplacedFirst+"_"+selectedYear;
+                    })
+                    .attr("class", "firstCountryPath")
+                    .attr("d", symbol.type(function(d) {
+                        return d3.symbolCircle; 
+                    }))
+                    .attr("transform", function(d) {
+                        return "translate("+ w + ","+ age_yScale(d.Value) + " )";
+                    })
+                    .style("stroke", function(d,i) { 
+                        return actColor(d.NACE_R2);
+                    })
+                    .style("fill", function(d,i) { 
+                        return actColor(d.NACE_R2);
+                    });
+            }
+        
+            //FIRST COUNTRY- Update degli elementi appena inseriti
+            selection = age_actChart.selectAll(".g.actChart.firstCountryPath")
+                .select("#"+nameReplacedFirst+"_"+selectedYear)
+            selection.transition()
+                .duration(updateDuration)
+                .attr("transform", function(d) {
+                    return "translate("+ age_xScale(d.AGE) + ","+ age_yScale(d.Value) + " )";
+                });
+        
+            selection = age_actChart.selectAll(".g.actChart.firstCountryPath")
+            selection.on("mouseover", function() { 
+                    return age_hoverin(filtDataFirst, true, 1, filtDataFirst, filtDataSecond);
+                });
+        }
+    
+        if (secondCountryExists == true && invalidDataTwo == false) {
+    
+            if (secondCountryChanged == true || yearChanged == true) {
+        
+                //SECOND COUNTRY- Enter Activities Chart        
+                selection = actChart.select("#clipPath").selectAll(".dots")
+                    .data(filtDataSecond);
+                selection.enter()
+                    .append("g")
+                    .attr("class", "g actChart secondCountryPath")
+                    .append("path")
+                    .attr("id", function(d) {
+                        return nameReplacedSecond+"_"+selectedYear;
+                    })
+                    .attr("class", "secondCountryPath")
+                    .attr("d", symbol.type(function(d) {
+                        return d3.symbolSquare;
+                    }))
+                    .attr("transform", function(d) {
+                        return "translate("+ w + ","+ age_yScale(d.Value) + " )";
+                    })
+                    .style("stroke", function(d,i) { 
+                        return actColor(d.NACE_R2);
+                    })
+                    .style("fill", function(d,i) { 
+                        return actColor(d.NACE_R2);
+                    });
+            }
+            //SECOND COUNTRY- Update dei nuovi elementi
+            selection = age_actChart.selectAll(".g.actChart.secondCountryPath").select("#"+nameReplacedSecond+"_"+selectedYear);
+            selection.transition()
+                .duration(updateDuration)
+                .attr("transform", function(d) {
+                    return "translate("+ age_xScale(d.AGE) + ","+ age_yScale(d.Value) + " )";
+                });
+            selection = actChart.selectAll(".g.actChart.secondCountryPath");
+            selection.on("mouseover", function() {
+                    return age_hoverin(filtDataSecond, false, 1, filtDataFirst, filtDataSecond);
+                });
+        }
+    }
+}
+
+
 /**
+ * GENDER
  * Aggiornamento del secondo chart corrispondente alle occupations
  * @param {Boolean} firstCountryChanged Se il primo paese è cambiato
  * @param {Boolean} secondCountryChanged Se il secondo paese è cambiato
@@ -1411,7 +2367,162 @@ function updateOccupationsChart(firstCountryChanged, secondCountryChanged, secon
 }
 
 
+function age_updateOccupationsChart(firstCountryChanged, secondCountryChanged, secondCountryExists, yearChanged) {
+
+    $("#age_occAlertFirst").removeClass('show');
+    $("#age_occAlertSecond").removeClass('show');
+
+    var selection;
+    var invalidDataOne = false;
+    var invalidDataTwo = false;
+
+    var nameReplacedFirst = firstCountry.split(' ')[0];
+    
+    var filtDataOccupationsFirst = filterData(data, firstCountry, selectedActivity, "allOccupations", "Total", "allAges", false);
+    filtDataOccupationsFirst = removeInvalidData(filtDataOccupationsFirst);
+
+    if (filtDataOccupationsFirst.length == 0)
+    {
+        invalidDataOne = true;
+        $("#age_occAlertFirst").addClass('show');
+    }
+    
+    if (secondCountryExists) 
+    {
+        var nameReplacedSecond = secondCountry.split(' ')[0];
+        var filtDataOccupationsSecond = filterData(data, secondCountry, selectedActivity, "allOccupations", "Total", "allAges", false);
+        filtDataOccupationsSecond = removeInvalidData(filtDataOccupationsSecond);
+
+        if (filtDataOccupationsSecond.length == 0)
+        {
+            invalidDataTwo = true;
+            $("#age_occAlertSecond").addClass('show');
+        }
+
+        if (!invalidDataTwo)
+        {
+            if (!invalidDataOne)
+                age_scaling(filtDataOccupationsFirst, filtDataOccupationsSecond);
+            else
+                age_scaling(filtDataOccupationsSecond);
+        }
+        else
+        {
+            filtDataOccupationsSecond = null;
+            if (!invalidDataOne)
+                age_scaling(filtDataOccupationsFirst)
+        }
+        
+    }
+    else
+    {
+        if (!invalidDataOne)
+            age_scaling(filtDataOccupationsFirst);
+        
+        var filtDataOccupationsSecond = null;
+    }
+
+    
+    if (invalidDataOne == false || (invalidDataTwo == false && secondCountryExists == true)) {
+
+        age_occChart.select(".x.axis")
+            .transition()
+            .duration(updateDuration)
+            .call(age_xAxis);
+    
+        age_occChart.select(".y.axis")
+            .transition()
+            .duration(updateDuration)
+            .call(age_yAxis);
+    
+        if (!invalidDataOne) 
+        {
+            if (firstCountryChanged == true || yearChanged == true) {
+        
+                //FIRST COUNTRY- Enter dei nuovi elementi
+                selection = age_occChart.select("#cliPathOcc").selectAll(".dots")
+                    .data(filtDataOccupationsFirst);
+                selection.enter()
+                    .append("g")
+                    .attr("class", "g occChart firstCountryPath")
+                    .append("path")
+                    .attr("id", function(d) {
+                        return nameReplacedFirst+"_"+selectedYear+"_"+activities.indexOf(selectedActivity);
+                    })
+                    .attr("class", "firstCountryPath")
+                    .attr("d", symbol.type(function(d) {
+                        return d3.symbolCircle;
+                    }))
+                    .attr("transform", function(d) {
+                        return "translate("+ w + ","+ age_yScale(d.Value) + " )";
+                    })
+                    .style("stroke", function(d,i) { 
+                        return occColor(d.ISCO08)
+                    })
+                    .style("fill", function(d,i) { 
+                        return occColor(d.ISCO08)
+                    });
+            }
+        
+            //FIRST COUNTRY- update degli elementi 
+            selection = age_occChart.selectAll(".g.occChart.firstCountryPath").select("#"+nameReplacedFirst+"_"+selectedYear+"_"+activities.indexOf(selectedActivity));
+            selection.transition()
+                .duration(updateDuration)
+                .attr("transform", function(d) {
+                    return "translate("+ age_xScale(d.AGE) + ","+ age_yScale(d.Value) + " )";
+                });
+            selection = age_occChart.selectAll(".g.occChart.firstCountryPath");
+            selection.on("mouseover", function() {
+                return age_hoverin(filtDataOccupationsFirst, true, 2, filtDataOccupationsFirst, filtDataOccupationsSecond);
+            });
+        }
+    
+        if (secondCountryExists == true && invalidDataTwo == false) 
+        {
+            if (secondCountryChanged == true || yearChanged == true) {
+        
+                //SECOND COUNTRY- Enter dei nuovi elementi
+                selection = age_occChart.select("#cliPathOcc").selectAll(".dots")
+                    .data(filtDataOccupationsSecond);
+                selection.enter()
+                    .append("g")
+                    .attr("class", "g occChart secondCountryPath")
+                    .append("path")
+                    .attr("id", function(d) {
+                        return nameReplacedSecond+"_"+selectedYear+"_"+activities.indexOf(selectedActivity);
+                    })
+                    .attr("class", "secondCountryPath")
+                    .attr("d", symbol.type(function(d) {
+                        return d3.symbolSquare;
+                    }))
+                    .attr("transform", function(d) {
+                       return "translate("+ w + ","+ age_yScale(d.Value) + " )";
+                    })
+                    .style("stroke", function(d,i) { 
+                        return occColor(d.ISCO08);
+                    })
+                    .style("fill", function(d,i) { 
+                        return occColor(d.ISCO08);
+                    });
+            }
+            //SECOND COUNTRY- Update degli elementi
+            selection = age_occChart.selectAll(".g.occChart.secondCountryPath").select("#"+nameReplacedSecond+"_"+selectedYear+"_"+activities.indexOf(selectedActivity));
+            selection.transition()
+                .duration(updateDuration)
+                .attr("transform", function(d) {
+                   return "translate("+ age_xScale(d.AGE) + ","+ age_yScale(d.Value) + " )";
+                });
+            selection = age_occChart.selectAll(".g.occChart.secondCountryPath");
+            selection.on("mouseover", function() {
+                    return age_hoverin(filtDataOccupationsSecond, false, 2, filtDataOccupationsFirst, filtDataOccupationsSecond);
+                });
+        }
+    }
+}
+
+
 /**
+ * GENDER
  * Aggiornamento del terzo chart corrispondente ai line charts delle occupations
  * @param {Boolean} firstCountryChanged Se il primo paese è cambiato 
  * @param {Boolean} secondCountryChanged Se il secondo paese è cambiato
@@ -1674,7 +2785,263 @@ function updateLineChartsGender(firstCountryChanged, secondCountryChanged, secon
 }
 
 
+function age_updateLineCharts(firstCountryChanged, secondCountryChanged, secondCountryExists) {
+
+    var selection;
+    var invalidDataOne = false;
+    var invalidDataTwo = false;
+    var bothCountryData = [];
+    var nameReplacedFirst = firstCountry.split(' ')[0];
+
+    var filtDataOccupationFirst = filterData(data, firstCountry, selectedActivity, selectedOccupation, "Total", selectedAge, true);
+    filtDataOccupationFirst = removeInvalidData(filtDataOccupationFirst);
+    
+    if (filtDataOccupationFirst.length == 0)
+       invalidDataOne = true;
+    else
+        var filtSingleOccDataPerAgesFirst = getDataPerAge(filtDataOccupationFirst, firstCountry, selectedActivity, selectedOccupation);
+    
+    if (filtSingleOccDataPerAgesFirst[0].length != 4)
+        $("#age_occLineAlertFirst").addClass('show');
+
+
+    if (secondCountryExists)
+    {
+        var nameReplacedSecond = secondCountry.split(' ')[0];
+        var filtDataOccupationSecond = filterData(data, secondCountry, selectedActivity, selectedOccupation, "Total", selectedAge, true);
+        filtDataOccupationSecond = removeInvalidData(filtDataOccupationSecond);
+
+        if (filtDataOccupationSecond.length == 0)
+            invalidDataTwo = true;
+
+        if (!invalidDataTwo)
+        {
+            var filtSingleOccDataPerAgesSecond = getDataPerAge(filtDataOccupationSecond, secondCountry, selectedActivity, selectedOccupation);
+            
+            if (filtSingleOccDataPerAgesSecond[0].length != 4)
+                $("#age_occLineAlertSecond").addClass('show');
+            
+            if (!invalidDataOne)
+            {
+                age_scaling(filtDataOccupationFirst, filtDataOccupationSecond);
+                if (filtSingleOccDataPerAgesFirst[0].length != 0) {
+
+                    filtSingleOccDataPerAgesFirst.forEach(function(d) {
+                        bothCountryData.push(d);
+                    });
+                }
+                if (filtSingleOccDataPerAgesSecond[0].length != 0) {
+
+                    filtSingleOccDataPerAgesSecond.forEach(function(d) {
+                        bothCountryData.push(d);
+                    });
+                }
+            }
+            else
+            {
+                age_scaling(filtDataOccupationSecond);
+                if (filtSingleOccDataPerAgesSecond[0].length != 0) {
+
+                    filtSingleOccDataPerAgesSecond.forEach(function(d) {
+                        bothCountryData.push(d);
+                    });
+                }
+            }
+        }
+        else
+        {
+            if (!invalidDataOne)
+            {
+                scaling(filtDataOccupationFirst);
+                
+                if (filtSingleOccDataPerAgesFirst[0].length != 0) {
+
+                    filtSingleOccDataPerAgesFirst.forEach(function(d) {
+                        bothCountryData.push(d);
+                    });
+                }
+            }
+        }            
+    }
+    else
+    {
+        if (!invalidDataOne) 
+        {
+            scaling(filtDataOccupationFirst);
+            if (filtSingleOccDataPerAgesFirst[0].length != 0)
+            {
+                filtSingleOccDataPerAgesFirst.forEach(function(d) {
+                    bothCountryData.push(d);
+                });
+            }
+
+        }
+
+        var filtDataOccupationSecond = null;
+    }
+
+    
+    if (invalidDataOne == false ||  (invalidDataTwo == false && secondCountryExists == true)) {
+
+        age_occLineChart.select(".y.axis")
+            .transition()
+            .duration(updateDuration)
+            .call(age_yAxis);
+            
+        if (!invalidDataOne) {
+    
+            //FIRST COUNTRY- Enter Lines
+            selection = age_lines.selectAll("line-group").data(filtSingleOccDataPerAgesFirst);
+            selection.enter()
+                .append("g")
+                .attr("class", "firstCountryPath")
+                .on("mouseover", function() {
+                    return age_hoverin(filtSingleOccDataPerAgesFirst, true, 3, filtDataOccupationFirst, filtDataOccupationSecond);
+                })
+                .append("path")
+                .attr("class", "line")  
+                .attr("d", function(d) {
+                    return lineGenerator(d);
+                })
+                .style("stroke", function(d,i) { 
+                    return moreColor(i);
+                })
+                .style("opacity", lineOpacity);
+    
+            if (firstCountryChanged) {
+                //FIRST COUNTRY- Enter Circles
+                selection = age_lines.selectAll("circle-group").data(filtSingleOccDataPerAgesFirst);
+                selection.enter()
+                    .append("g")
+                    .attr("class", function(d,i){
+                        return "firstCountryCircles _"+ages.indexOf(d.AGE);
+                    })
+                    .style("fill", function(d,i) { return moreColor(i)})
+                    .selectAll("circle")
+                    .data(function(d) { return d}).enter()
+                    .append("g")
+                    .attr("class", "circle")  
+                    .append("circle")
+                    .attr("id", function(d) {
+                        return nameReplacedFirst+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
+                    })
+                    .attr("cx", w)
+                    .attr("cy", function(d) { return age_yScale(d.Value);})
+                    .attr("r", circleRadius)
+                    .style("opacity", circleOpacity);
+            }
+            
+            //FIRST COUNTRY- update circles
+            selection = age_lines.selectAll(".firstCountryCircles").selectAll("#"+nameReplacedFirst+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation));
+            selection.transition()
+                .duration(updateDuration)
+                .attr("cx", function(d) { return xTimeScale(d.TIME);})
+                .attr("cy", function(d) { 
+                    return age_yScale(d.Value);
+                });
+            selection = age_lines.selectAll(".firstCountryCircles");
+            selection.on("mouseover", function() {
+                return age_hoverin(filtSingleOccDataPerAgesFirst, true, 3, filtDataOccupationFirst, filtDataOccupationSecond);
+            });
+        }
+    
+        if (secondCountryExists == true && invalidDataTwo == false)
+        {
+            //SECOND COUNTRY- Enter Lines
+            selection = age_lines.selectAll("line-group").data(filtSingleOccDataPerAgesSecond);
+            selection.enter()
+                .append("g")
+                .attr("class", "secondCountryPath")
+                .on("mouseover", function() {
+                    return age_hoverin(filtSingleOccDataPerAgesSecond, false, 3, filtDataOccupationFirst, filtDataOccupationSecond);
+                })
+                .append("path")
+                .attr("class", "line")  
+                .attr("d", function(d) {
+                    return lineGenerator(d);
+                })
+                .style("stroke", function(d,i) { 
+                    return moreColor(i+2);
+                })
+                .style("opacity", lineOpacity);
+        
+            if (secondCountryChanged) {
+        
+                //SECOND COUNTRY- Enter circles
+                selection = age_lines.selectAll("circle-group").data(filtSingleOccDataPerAgesSecond);
+                selection.enter()
+                    .append("g")
+                    .attr("class", function(d,i){
+                        return "secondCountryCircles _"+ages.indexOf(d.AGE);
+                    })
+                    .style("fill", function(d,i) { 
+                        return moreColor(i+2);
+                    })
+                    .selectAll("circle")
+                    .data(function(d) { return d}).enter()
+                    .append("g")
+                    .attr("class", "circle")  
+                    .append("circle")
+                    .attr("id", function(d) {
+                        return nameReplacedSecond+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
+                    })
+                    .attr("cx", w)
+                    .attr("cy", function(d) { return age_yScale(d.Value);})
+                    .attr("r", circleRadius)
+                    .style("opacity", circleOpacity);
+            }
+            
+            //SECOND COUNTRY- update circles
+            selection = age_lines.selectAll(".secondCountryCircles").selectAll("#"+nameReplacedSecond+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation));
+            selection.transition()
+                .duration(updateDuration)
+                .attr("cx", function(d) { return xTimeScale(d.TIME);})
+                .attr("cy", function(d) { return age_yScale(d.Value);});
+            selection = age_lines.selectAll(".secondCountryCircles");
+            selection.on("mouseover", function() {
+                return age_hoverin(filtSingleOccDataPerAgesSecond, false, 3, filtDataOccupationFirst, filtDataOccupationSecond);
+            });
+            
+        }
+
+        if (bothCountryData.length != 0)
+        {
+
+            //Line charts legend enter
+            age_legendOccLine.selectAll(".legendDots")
+                .data(bothCountryData)
+                .enter()
+                .append("circle")    
+                    .attr("cx", 20)
+                    .attr("cy", function(d,i) {
+                        return 20 + i*30;
+                    })  
+                    .attr("r", 7)
+                    .style("fill", function(d,i) { return moreColor(i)});
+        
+            age_legendOccLine.selectAll("labels").data(bothCountryData)
+                    .enter()
+                    .append("foreignObject")
+                    .attr("x", 40)
+                    .attr("y", function(d,i){ return 11 + i*30}) 
+                    .attr("width", 400)
+                    .attr("height", 35)
+                    .append("xhtml:body")
+                        .style("font", "14px 'Helvetica Neue'")
+                        .style("color", function(d,i){ return moreColor(i)})
+                        .html(function(d) {
+                            if (d.length != 0)
+                                return d[0].GEO+", "+d[0].AGE;
+                            else
+                                return;
+                        });
+        }
+    }
+}
+
+
 /**
+ * GENDER
  * Si occupa di attribuire le proprietà onmouseover e onmouseout ai vari componenti dei charts
  * @param {*} dataset Dataset in esame
  * @param {Boolean} isFirstCountry Se si tratta del secondo paese oppure no
@@ -1936,6 +3303,245 @@ function hoverin (dataset, isFirstCountry, id, firstScaleDataset, secondScaleDat
                         .attr("r", circleRadius);  
                     });
 
+    }
+}
+
+
+function age_hoverin(dataset, isFirstCountry, id, firstScaleDataset, secondScaleDataset = null) {
+    
+    //hover scatterplot activities
+    if (id == 1)
+    {
+        var selectedData;
+        if (isFirstCountry) 
+            selectedData = age_actChart.selectAll(".g.actChart.firstCountryPath");
+        else
+            selectedData = age_actChart.selectAll(".g.actChart.secondCountryPath");
+        
+        selectedData.data(dataset)
+                .on("mouseover", function(d,i) {
+                    if (secondScaleDataset == null) 
+                        age_scaling(firstScaleDataset);
+                    else
+                        age_scaling(firstScaleDataset, secondScaleDataset);
+
+                    d3.select(this)     
+                    .style("cursor", "pointer")
+                    .append("text")
+                    .attr("class", "text")
+                    .attr("fill", function(d) {
+                        return actColor(d.NACE_R2);
+                    })
+                    .text(function(d) {
+        
+                        if (d.GEO.split(" ").length > 2) {
+                            if (d.GEO.split(" ")[0] == "Germany") 
+                                return d.GEO.toUpperCase().split(" ")[0]+ " Value:"+d.Value;
+                            else
+                                return d.GEO.toUpperCase().split(" ")[0] + " " + d.GEO.toUpperCase().split(" ")[1]+ " Value:"+d.Value;
+                        }
+                        else
+                            return d.GEO.toUpperCase().split(" ")[0]+ " Value:"+d.Value;
+                    
+                    })
+                    .attr("text-anchor", "middle")
+                    .attr("x", (w-margin.top)/2)
+                    .attr("y", 15)
+                    .attr("font-size", textSize);
+                })
+                .on("mouseout", function(d) {
+                
+                    d3.select(this)
+                        .style("cursor", "none")  
+                        .transition()
+                        .duration(duration)
+                        .selectAll(".text").remove();
+                });    
+        
+    }
+
+    
+    //hover scatterplot occupations
+    if (id == 2) 
+    {
+        var selectedData;
+        if (isFirstCountry) 
+            selectedData = age_occChart.selectAll(".g.occChart.firstCountryPath");
+        else
+            selectedData = age_occChart.selectAll(".g.occChart.secondCountryPath");
+        
+        selectedData.data(dataset)
+                    .on("mouseover", function(d) {
+                        
+                        if (secondScaleDataset == null) 
+                            age_scaling(firstScaleDataset);
+                        else
+                            age_scaling(firstScaleDataset, secondScaleDataset);
+
+                        d3.select(this)     
+                        .style("cursor", "pointer")
+                        .append("text")
+                        .attr("class", "text")
+                        .attr("fill", function(d) {
+                            return occColor(d.ISCO08);
+                        })
+                        .text(function(d) {
+                          
+                            if (d.GEO.split(" ").length > 2) {
+                                if (d.GEO.split(" ")[0] == "Germany") 
+                                    return d.GEO.toUpperCase().split(" ")[0]+ " Value: "+d.Value;
+                                else
+                                    return d.GEO.toUpperCase().split(" ")[0] + " " + d.GEO.toUpperCase().split(" ")[1]+ " Value: "+d.Value;
+                            }
+                            else
+                                return d.GEO.toUpperCase().split(" ")[0]+ " Value: "+d.Value;
+                        
+                        })
+                        .attr("text-anchor", "middle")
+                        .attr("x", (w-margin.top)/2)
+                        .attr("y", 15)
+                        .attr("font-size", textSize);
+
+                    })
+                    .on("mouseout", function(d) {
+                    
+                        d3.select(this)
+                            .style("cursor", "none")  
+                            .transition()
+                            .duration(duration)
+                            .selectAll(".text").remove();
+
+                    })    
+    }
+
+
+    //hover lineChart e circles gender
+    if (id == 3) 
+    {
+        //Line hover text
+        var selectedData;
+        if (isFirstCountry) 
+            selectedData = age_lines.selectAll(".firstCountryPath");
+        else
+            selectedData = age_lines.selectAll(".secondCountryPath");
+        
+        selectedData.data(dataset)
+            .on("mouseover", function(d, i) {
+                var c;
+                if (!isFirstCountry) 
+                    c = i+2;
+                else 
+                    c = i;
+                
+                age_occLineChart.append("text")
+                .attr("class", "title-text")
+                .style("fill", moreColor(c))        
+                .text(d[0].GEO+", "+d[0].AGE)
+                .attr("text-anchor", "middle")
+                .attr("x", (w-margin.top)/2)
+                .attr("y", 15);
+            })
+            .on("mouseout", function(d) {
+                age_occLineChart.select(".title-text").remove();
+            })  
+
+        //Line hover
+        if (isFirstCountry) 
+            selectedData = age_lines.selectAll(".firstCountryPath").select(".line");
+        else
+            selectedData = age_lines.selectAll(".secondCountryPath").select(".line");
+
+        selectedData.data(dataset)
+                    .on("mouseover", function(d) {
+                        d3.selectAll(".line")
+                                    .style("opacity", otherLinesOpacityHover);
+                        d3.selectAll(".circle")
+                                    .style("opacity", circleOpacityOnLineHover);
+                        d3.select(this)
+                        .style("opacity", lineOpacityHover)
+                        .style("stroke-width", lineStrokeHover)
+                        .style("cursor", "pointer");
+                    })
+                    .on("mouseout", function(d) {
+                        d3.selectAll(".line")
+                                    .style("opacity", lineOpacity);
+                        d3.selectAll(".circle")
+                                    .style("opacity", circleOpacity);
+                        d3.select(this)
+                        .style("stroke-width", lineStroke)
+                        .style("cursor", "none");
+                    });
+
+        ages.forEach(function(d,i) {
+            var itemExists = false;
+            var itemIndex = 0;
+            dataset.forEach(function(c,j) {
+                if (c[0].AGE == d) {
+                    itemExists = true;
+                    itemIndex = j;
+                    return;
+                } 
+            })
+
+            //hover applicato a tutti i cerchi dei vari ages
+            if (itemExists) {
+                
+                
+                //circle text hover circles
+                if (isFirstCountry) 
+                    selectedData = age_lines.selectAll(".firstCountryCircles._"+i).selectAll(".circle");
+                else
+                    selectedData = age_lines.selectAll(".secondCountryCircles._"+i).selectAll(".circle");
+            
+                selectedData.data(dataset[itemIndex])
+                            .on("mouseover", function(d) {
+
+                                if (secondScaleDataset == null) 
+                                    age_scaling(firstScaleDataset);
+                                else
+                                    age_scaling(firstScaleDataset, secondScaleDataset);
+
+                                d3.select(this)     
+                                    .style("cursor", "pointer")
+                                    .append("text")
+                                    .attr("class", "text")
+                                    .text(d.Value)
+                                    .attr("x", function(d) { return xTimeScale(d.TIME) + 5;})
+                                    .attr("y", function(d) { return age_yScale(d.Value) - 10;});
+                            })
+                            .on("mouseout", function(d) {
+                                d3.select(this)
+                                .style("cursor", "none")  
+                                .transition()
+                                .duration(duration)
+                                .selectAll(".text").remove();
+                            });
+
+
+
+            }
+            else
+                return;
+        });
+
+                    
+        if (isFirstCountry) 
+            selectedData = age_lines.selectAll(".firstCountryCircles").selectAll("circle");
+        else
+            selectedData = age_lines.selectAll(".secondCountryCircles").selectAll("circle");
+            
+        selectedData.on("mouseover", function(d) {
+                        d3.select(this)
+                        .transition()
+                        .duration(duration)
+                        .attr("r", circleRadiusHover);
+                    })
+                    .on("mouseout", function(d) {
+                        d3.select(this) 
+                        .transition()
+                        .duration(duration)
+                        .attr("r", circleRadius);  
+                    });
     }
 }
 
@@ -2366,18 +3972,24 @@ d3.csv("data/earn_ses_monthly_1_Data.csv", function (error, csv) {
 
         if (!years.includes(d.TIME)) 
             years.push(d.TIME);
+
+        if (!ages.includes(d.AGE) && d.AGE != "Total")
+            ages.push(d.AGE);
         
     });
 
+    //Parsing degli anni in date
     var parseDate = d3.timeParse("%Y");
     years.forEach(function(d,i) {
             years[i] = parseDate(d);
     })
-
-    // console.log(data);
+    
     radioList();
     gender_menu();
     genderStudyCharts();
+    
+    age_menu();
+    ageStudyCharts();
 });
 
 

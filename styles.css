@@ -3,3 +3,10 @@
     stroke: black;
     stroke-width: 1px;
 }
+
+.line {
+    stroke: black;
+    stroke-width: 2;
+    fill: none;
+    opacity: 0.25;
+}

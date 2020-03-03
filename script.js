@@ -81,6 +81,7 @@ var age_actScatt,
     age_lines,
     age_legendOccLine;
    
+
 /**
  * Inizializzazione delle variabili globali
  */
@@ -284,6 +285,10 @@ function gender_menu() {
 }
 
 
+/**
+ * AGE 
+* Inizializzazione dei contenuti dei menu select e degli input presenti nei form del tab age
+ */
 function age_menu() {
 
     //Menu select per il secondo paese
@@ -358,13 +363,14 @@ function countryRedirectUpdate() {
     //Leggo il secondo paese selezionato nel menu
     var secondCountrySelect = $("#secondCountrySelected :selected").val();
     var checkSelectedYear = $("#yearSelected :selected").val();
-
+    var yearChanged = false;
     if (secondCountrySelect != secondCountry)
         return updateCountryGenderCharts(firstCountry, secondCountrySelect, checkSelectedYear);
     
 
     //E' stato cambiato solamente l'anno, sono da aggiornare i due grafici delle activities e delle occupations
     if (checkSelectedYear != selectedYear){
+        yearChanged = true;
         selectedYear = checkSelectedYear;
         var secondCountryExists = true;
         if (secondCountry == "default")
@@ -376,19 +382,42 @@ function countryRedirectUpdate() {
             removeOldData(false, 1);
 
         //aggiornamento dei charts corrispondenti
-        updateActivitiesChart(false, false, secondCountryExists, true);
-        updateOccupationsChart(false, false, secondCountryExists, true);
+        updateActivitiesChart(false, false, secondCountryExists, yearChanged);
+        updateOccupationsChart(false, false, secondCountryExists, yearChanged);
+        
+        if (yearChanged)
+        {
+            //aggiornamento dell'id per il line charts
+            selection = lines.selectAll(".firstCountryCircles").selectAll("circle");
+            selection.attr("id", function(d) {
+                return firstCountry.split(' ')[0]+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
+            });
+
+            if (secondCountryExists)
+            {
+                selection = lines.selectAll(".secondCountryCircles").selectAll("circle");
+                selection.attr("id", function(d) {
+                return secondCountry.split(' ')[0]+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
+            });
+            }
+
+        }
         return;
     }
     
 }
 
 
+/**
+ * AGE
+ * Effettua il redirect per il bottone che effettua il select del secondo paese e dell'anno
+ */
 function age_countryRedirectUpdate() {
     
     //Leggo il secondo paese selezionato nel menu
     var secondCountrySelect = $("#age_secondCountrySelected :selected").val();
     var checkSelectedYear = $("#age_yearSelected :selected").val();
+    var yearChanged = false;
 
     if (secondCountrySelect != secondCountry)
         return age_updateCountryCharts(firstCountry, secondCountrySelect, checkSelectedYear);
@@ -397,6 +426,7 @@ function age_countryRedirectUpdate() {
     //E' stato cambiato solamente l'anno, sono da aggiornare i due grafici delle activities e delle occupations
     if (checkSelectedYear != selectedYear){
         selectedYear = checkSelectedYear;
+        yearChanged = true;
         var secondCountryExists = true;
         if (secondCountry == "default")
         {
@@ -407,8 +437,26 @@ function age_countryRedirectUpdate() {
             age_removeOldData(false, 1);
 
         //aggiornamento dei charts corrispondenti
-        age_updateActivitiesChart(false, false, secondCountryExists, true);
-        age_updateOccupationsChart(false, false, secondCountryExists, true);
+        age_updateActivitiesChart(false, false, secondCountryExists, yearChanged);
+        age_updateOccupationsChart(false, false, secondCountryExists, yearChanged);
+
+        if (yearChanged)
+        {
+            //aggiornamento dell'id dei cerchi dei line charts
+            selection = age_lines.selectAll(".firstCountryCircles").selectAll("circle");
+            selection.attr("id", function(d) {
+                return firstCountry.split(' ')[0]+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
+            });
+
+            if (secondCountryExists)
+            {
+                selection = age_lines.selectAll(".secondCountryCircles").selectAll("circle");
+                selection.attr("id", function(d) {
+                return secondCountry.split(' ')[0]+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
+            });
+            }
+        }
+
         return;
     }
     
@@ -441,6 +489,10 @@ function activityRedirectUpdate() {
 }
 
 
+/**
+ * AGE
+ * Effettua il redirect per il bottone che effettua il select delle attivtà
+ */
 function age_activityRedirectUpdate() {
     
     var checkSelectedActivity = $("#age_activitySelected :selected").val();
@@ -490,6 +542,10 @@ function occupationRedirectUpdate() {
 }
 
 
+/**
+ * AGE
+ * Effettua il redirect per il bottone che effettua il select dell'occupazione
+ */
 function age_occupationRedirectUpdate() {
     
     var checkSelectedOccupation = $("#age_occupationSelected :selected").val();
@@ -517,7 +573,7 @@ function age_occupationRedirectUpdate() {
 
 /**
  * GENDER
- * Calcola le operazioni di scaling iìper i dataset passati come parametri
+ * Calcola le operazioni di scaling per i dataset passati come parametri
  * @param {*} dataset Dataset di cui effettuare lo scaling
  * @param {*} secondDataset Secondo dataset di cui effettuare lo scaling in contemporanea al primo, NULL di default
  */
@@ -654,6 +710,12 @@ function scaling(dataset, secondDataset = null) {
 }
 
 
+/**
+ * AGE
+ * Calcola le operazioni di scaling per i dataset passati come parametri
+ * @param {*} dataset Dataset di cui effettuare lo scaling
+ * @param {*} secondDataset Secondo Dataset di cui effettuare lo scaling in contemporanea al primo, NULL di default
+ */
 function age_scaling(dataset, secondDataset = null) {
 
     //E' presente solo un dataset passato di cui effettuare lo scaling
@@ -837,6 +899,14 @@ function getDataPerGender(dataset, country, act, occ, checkYears) {
 }
 
 
+/**
+ * AGE
+ * Dato un dataset raggruppa tutte le voci in base al genere 
+ * @param {*} dataset Dataset in esame 
+ * @param {*} country paese in esame
+ * @param {*} act Attività selezionata
+ * @param {*} occ Occupazione selezionata
+ */
 function getDataPerAge(dataset, country, act, occ) {
 
     var ageData = [];
@@ -1196,6 +1266,10 @@ function genderStudyCharts() {
 }
 
 
+/**
+ * AGE
+ * Effettua l'inizializzazione dei charts del tab dell'age 
+ */
 function ageStudyCharts() {
 
     var nameReplacedFirst = firstCountry.split(' ')[0];
@@ -1601,6 +1675,12 @@ function removeOldData(secondCountryDefault, allData = 0) {
 }
 
 
+/**
+ * AGE 
+ * Cancella i risultati dei precedenti charts in base al numero del "ticket" presentatogli 
+ * @param {*} secondCountryDefault Contolla se il paese selezionato è nullo
+ * @param {*} allData Ticket per decidere quale chart eliminare
+ */
 function age_removeOldData(secondCountryDefault, allData = 0) {
 
     if ( allData != 4) {
@@ -1684,6 +1764,7 @@ function age_removeOldData(secondCountryDefault, allData = 0) {
 
 }
 
+
 /**
  * GENDER
  * Aggiorna l'input box presente in alto per la voce del primo paese selezionato
@@ -1706,6 +1787,11 @@ function displayValues (isFirstCountryChanged) {
 }
 
 
+/**
+ * AGE
+ * Aggiorna l'input box presente in alto per la voce del primo paese selezionato 
+ * @param {Boolean} isFirstCountryChanged Chcek se il primo paese è cambiato 
+ */
 function age_displayValues(isFirstCountryChanged) {
 
     
@@ -1765,6 +1851,23 @@ function updateCountryGenderCharts(firstSelectedCountry, secondSelectedCountry, 
         if (newSelectedYear != selectedYear){
             yearChanged = true;
             selectedYear = newSelectedYear;
+            if (yearChanged)
+            {
+                //aggiornamento dell'id per il line charts
+                selection = lines.selectAll(".firstCountryCircles").selectAll("circle");
+                selection.attr("id", function(d) {
+                    return firstCountry.split(' ')[0]+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
+                });
+
+                if (secondCountryExists)
+                {
+                    selection = lines.selectAll(".secondCountryCircles").selectAll("circle");
+                    selection.attr("id", function(d) {
+                    return secondCountry.split(' ')[0]+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
+                    });
+                }
+
+            }
         }
         
         //Effettua la rimozione in base ai paesi che son cambiati
@@ -1786,6 +1889,13 @@ function updateCountryGenderCharts(firstSelectedCountry, secondSelectedCountry, 
 }
 
 
+/**
+ * AGE 
+ * Metodo generale per l'aggiornamento dei charts
+ * @param {String} firstSelectedCountry Primo paese
+ * @param {String} secondSelectedCountry Secondo Paese
+ * @param {Date} newSelectedYear L'anno
+ */
 function age_updateCountryCharts(firstSelectedCountry, secondSelectedCountry, newSelectedYear) {
 
       
@@ -1821,6 +1931,23 @@ function age_updateCountryCharts(firstSelectedCountry, secondSelectedCountry, ne
         if (newSelectedYear != selectedYear){
             yearChanged = true;
             selectedYear = newSelectedYear;
+
+            if (yearChanged)
+            {
+                //aggiornamento dell'id dei cerchi dei line charts
+                selection = age_lines.selectAll(".firstCountryCircles").selectAll("circle");
+                selection.attr("id", function(d) {
+                    return firstCountry.split(' ')[0]+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
+                });
+
+                if (secondCountryExists)
+                {
+                    selection = age_lines.selectAll(".secondCountryCircles").selectAll("circle");
+                    selection.attr("id", function(d) {
+                    return secondCountry.split(' ')[0]+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
+                });
+                }
+            }
         }
         
         //Effettua la rimozione in base ai paesi che son cambiati
@@ -1841,6 +1968,7 @@ function age_updateCountryCharts(firstSelectedCountry, secondSelectedCountry, ne
     }
     
 }
+
 
 /**
  * GENDER
@@ -2034,6 +2162,14 @@ function updateActivitiesChart(firstCountryChanged, secondCountryChanged, second
 }
 
 
+/**
+ * AGE 
+ * Aggiornamento del primo chart corrispondente alle activities
+ * @param {Boolean*} firstCountryChanged Se il primo paese è cambiato
+ * @param {Boolean} secondCountryChanged Se il secondo paese è cambiato
+ * @param {Boolean*} secondCountryExists Se il secondo paese esiste oppure è la voce NULL
+ * @param {Boolean} yearChanged Se l'anno è cambiato
+ */
 function age_updateActivitiesChart(firstCountryChanged, secondCountryChanged, secondCountryExists, yearChanged) {
 
    
@@ -2376,6 +2512,14 @@ function updateOccupationsChart(firstCountryChanged, secondCountryChanged, secon
 }
 
 
+/**
+ * AGE
+ * Aggiornametno del secondo chart corrispodente alle occupations
+ * @param {Boolean} firstCountryChanged Se il primo paese è cambiato 
+ * @param {Boolean} secondCountryChanged Se il secondo paese è cambiato
+ * @param {Boolean} secondCountryExists Se il secondo paese esiste oppure è NONE
+ * @param {Boolean} yearChanged Se l'anno è cambiato
+ */
 function age_updateOccupationsChart(firstCountryChanged, secondCountryChanged, secondCountryExists, yearChanged) {
 
     $("#age_occAlertFirst").removeClass('show');
@@ -2537,7 +2681,7 @@ function age_updateOccupationsChart(firstCountryChanged, secondCountryChanged, s
  * @param {Boolean} secondCountryChanged Se il secondo paese è cambiato
  * @param {Boolean} secondCountryExists Se il secondo paese esiste oppure è NONE
  */
-function updateLineChartsGender(firstCountryChanged, secondCountryChanged, secondCountryExists) {
+function updateLineChartsGender(firstCountryChanged, secondCountryChanged, secondCountryExists, yearChanged) {
  
     var selection;
     var invalidDataOne = false;
@@ -2794,7 +2938,14 @@ function updateLineChartsGender(firstCountryChanged, secondCountryChanged, secon
 }
 
 
-function age_updateLineCharts(firstCountryChanged, secondCountryChanged, secondCountryExists) {
+/**
+ * AGE
+ * Aggiornamento del terzo chart corrispondente ai line charts delle occupations
+ * @param {Boolean} firstCountryChanged Se il primo paese è cambiato 
+ * @param {Boolean} secondCountryChanged Se il secondo paese è cambiato
+ * @param {Boolean} secondCountryExists Se il secondo paese esiste oppure è NONE
+ */
+function age_updateLineCharts(firstCountryChanged, secondCountryChanged, secondCountryExists, yearChanged) {
 
     var selection;
     var invalidDataOne = false;
@@ -3316,6 +3467,15 @@ function hoverin (dataset, isFirstCountry, id, firstScaleDataset, secondScaleDat
 }
 
 
+/**
+ * AGE
+ * Si occupa di attribuire le proprietà onmouseover e onmouseout ai vari componenti dei charts
+ * @param {*} dataset Dataset in esame
+ * @param {Boolean} isFirstCountry Se si tratta del secondo paese oppure no
+ * @param {Number} id Il numero del chart di cui effettuare le operazioni di hoverin
+ * @param {*} firstScaleDataset Il primo dataset per effettuare lo scaling
+ * @param {*} secondScaleDataset Il secondo dataset per effettuare lo scaling
+ */
 function age_hoverin(dataset, isFirstCountry, id, firstScaleDataset, secondScaleDataset = null) {
     
     //hover scatterplot activities
@@ -3987,12 +4147,13 @@ d3.csv("data/earn_ses_monthly_1_Data.csv", function (error, csv) {
         
     });
 
-    //Parsing degli anni in date
+    //Parsing degli anni in oggetti date
     var parseDate = d3.timeParse("%Y");
     years.forEach(function(d,i) {
             years[i] = parseDate(d);
     })
     
+    //Funzioni iniziali 
     radioList();
     gender_menu();
     genderStudyCharts();

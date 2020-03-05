@@ -297,6 +297,13 @@ function gender_menu() {
             .attr("value", function(d) { return d; })
             .attr("label", function(d) { return d; });
     
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        var target = $(e.target).attr("href") // activated tab
+        if (target == "#age")
+            age_countryRedirectUpdate();
+        else
+            countryRedirectUpdate();
+    });
 }
 
 
@@ -377,16 +384,21 @@ function countryRedirectUpdate() {
 
     //Leggo il secondo paese selezionato nel menu
     var secondCountrySelect = $("#secondCountrySelected :selected").val();
+    var radioCountry = $("input[name='countriesList']:checked").val();
+    firstCountry = d3.select("#firstCountrySelected").attr("value");
+
     var checkSelectedYear = $("#yearSelected :selected").val();
     var yearChanged = false;
-    if (secondCountrySelect != secondCountry)
-        return updateCountryGenderCharts(firstCountry, secondCountrySelect, checkSelectedYear);
+    
+    if (secondCountrySelect != secondCountry || radioCountry != firstCountry)
+        return updateCountryGenderCharts(radioCountry, secondCountrySelect, checkSelectedYear);
     
 
     //E' stato cambiato solamente l'anno, sono da aggiornare i due grafici delle activities e delle occupations
     if (checkSelectedYear != selectedYear){
         yearChanged = true;
         selectedYear = checkSelectedYear;
+
         var secondCountryExists = true;
         if (secondCountry == "default")
         {
@@ -431,11 +443,14 @@ function age_countryRedirectUpdate() {
     
     //Leggo il secondo paese selezionato nel menu
     var secondCountrySelect = $("#age_secondCountrySelected :selected").val();
+    var radioCountry = d3.select("#age_firstCountrySelected").attr("value");
+    firstCountry = d3.select("#age_firstCountrySelected").attr("value");
+    
     var checkSelectedYear = $("#age_yearSelected :selected").val();
     var yearChanged = false;
 
-    if (secondCountrySelect != secondCountry)
-        return age_updateCountryCharts(firstCountry, secondCountrySelect, checkSelectedYear);
+    if (secondCountrySelect != secondCountry || radioCountry != firstCountry)
+        return age_updateCountryCharts(radioCountry, secondCountrySelect, checkSelectedYear);
     
 
     //E' stato cambiato solamente l'anno, sono da aggiornare i due grafici delle activities e delle occupations
@@ -443,6 +458,7 @@ function age_countryRedirectUpdate() {
         selectedYear = checkSelectedYear;
         yearChanged = true;
         var secondCountryExists = true;
+        
         if (secondCountry == "default")
         {
             secondCountryExists = false;
@@ -502,6 +518,7 @@ function activityRedirectUpdate() {
         //aggiornamento del chart
         selectedActivity = checkSelectedActivity;
         updateOccupationsChart(true, true, secondCountryExists, false);
+        updateLineChartsGender(true, true, secondCountryExists, false);
     }
 }
 
@@ -528,6 +545,7 @@ function age_activityRedirectUpdate() {
         //aggiornamento del chart
         selectedActivity = checkSelectedActivity;
         age_updateOccupationsChart(true, true, secondCountryExists, false);
+        age_updateLineCharts(true, true, secondCountryExists, false);
     }
 }
 
@@ -762,8 +780,13 @@ function age_scaling(dataset, secondDataset = null) {
     else 
         checkMinValue = min_xy-avg_xy;
 
+    var scaleAges = [];
+    scaleAges.push("");
+    ages.forEach(function(d) { scaleAges.push(d);});
+    scaleAges.push(" ");
+
     age_xScale = d3.scalePoint()
-                .domain(ages)
+                .domain(scaleAges)
                 .range([0,w]);
 
     age_yScale = d3.scaleLinear()
@@ -1739,7 +1762,7 @@ function removeOldData(secondCountryDefault, allData = 0) {
                         .remove();
         }
     
-        if (allData != 1 && allData != 2)                
+        if (allData != 1)                
         {
             lines.selectAll(".firstCountryCircles").transition()
                     .duration(updateDuration)
@@ -1765,7 +1788,7 @@ function removeOldData(secondCountryDefault, allData = 0) {
                     .remove();
         }
                 
-        if (allData != 1 && allData != 2) 
+        if (allData != 1) 
         {
             lines.selectAll(".secondCountryCircles").transition()
                 .duration(updateDuration)
@@ -1773,7 +1796,7 @@ function removeOldData(secondCountryDefault, allData = 0) {
         }
     
     }
-    if (allData != 1 && allData != 2) {
+    if (allData != 1) {
 
         lines.selectAll(".firstCountryPath").transition()
                 .duration(updateDuration)
@@ -1829,7 +1852,7 @@ function age_removeOldData(secondCountryDefault, allData = 0) {
                         .remove();
         }
     
-        if (allData != 1 && allData != 2)                
+        if (allData != 1)                
         {
             age_lines.selectAll(".firstCountryCircles").transition()
                     .duration(updateDuration)
@@ -1855,7 +1878,7 @@ function age_removeOldData(secondCountryDefault, allData = 0) {
                     .remove();
         }
                 
-        if (allData != 1 && allData != 2) 
+        if (allData != 1) 
         {
             age_lines.selectAll(".secondCountryCircles").transition()
                 .duration(updateDuration)
@@ -1863,7 +1886,7 @@ function age_removeOldData(secondCountryDefault, allData = 0) {
         }
     
     }
-    if (allData != 1 && allData != 2) {
+    if (allData != 1) {
 
         age_lines.selectAll(".firstCountryPath").transition()
                 .duration(updateDuration)
@@ -1894,7 +1917,7 @@ function age_removeOldData(secondCountryDefault, allData = 0) {
 
 
 /**
- * GENDER
+ * 
  * Aggiorna l'input box presente in alto per la voce del primo paese selezionato
  * @param {Boolean} isFirstCountryChanged Check se il primo paese è cambiato
  */
@@ -1911,6 +1934,16 @@ function displayValues (isFirstCountryChanged) {
         }
         else
             d3.select("#firstCountrySelected").attr("value", firstCountry);
+
+        //Visualizzazione del first Country per age
+        if (firstCountry.split(" ").length > 2) {
+            if (firstCountry.split(" ")[0] == "Germany") 
+                d3.select("#age_firstCountrySelected").attr("value", firstCountry.split(" ")[0]);
+            else
+                d3.select("#age_firstCountrySelected").attr("value", firstCountry.split(" ")[0]+ " " + firstCountry.split(" ")[1]);
+        }
+        else
+            d3.select("#age_firstCountrySelected").attr("value", firstCountry);
     }
 }
 
@@ -1922,7 +1955,6 @@ function displayValues (isFirstCountryChanged) {
  */
 function age_displayValues(isFirstCountryChanged) {
 
-    
     if (isFirstCountryChanged) {
 
         //Visualizzazione del first Country
@@ -4289,6 +4321,10 @@ d3.csv("data/earn_ses_monthly_1_Data.csv", function (error, csv) {
 
         if (!years.includes(d.TIME)) 
             years.push(d.TIME);
+
+        if(d.AGE == "From 30 to 39 years") d.AGE = "30-39"
+        if(d.AGE == "From 40 to 49 years") d.AGE = "40-49"
+        if(d.AGE == "From 50 to 59 years") d.AGE = "50-59"
 
         if (!ages.includes(d.AGE) && d.AGE != "Total")
             ages.push(d.AGE);

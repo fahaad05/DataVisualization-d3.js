@@ -384,14 +384,13 @@ function countryRedirectUpdate() {
 
     //Leggo il secondo paese selezionato nel menu
     var secondCountrySelect = $("#secondCountrySelected :selected").val();
-    var radioCountry = $("input[name='countriesList']:checked").val();
-    firstCountry = d3.select("#firstCountrySelected").attr("value");
+    firstCountrySelected = d3.select("#firstCountrySelected").attr("name");
 
     var checkSelectedYear = $("#yearSelected :selected").val();
     var yearChanged = false;
     
-    if (secondCountrySelect != secondCountry || radioCountry != firstCountry)
-        return updateCountryGenderCharts(radioCountry, secondCountrySelect, checkSelectedYear);
+    if (secondCountrySelect != secondCountry || firstCountrySelected != firstCountry)
+        return updateCountryGenderCharts(firstCountrySelected, secondCountrySelect, checkSelectedYear);
     
 
     //E' stato cambiato solamente l'anno, sono da aggiornare i due grafici delle activities e delle occupations
@@ -443,14 +442,13 @@ function age_countryRedirectUpdate() {
     
     //Leggo il secondo paese selezionato nel menu
     var secondCountrySelect = $("#age_secondCountrySelected :selected").val();
-    var radioCountry = d3.select("#age_firstCountrySelected").attr("value");
-    firstCountry = d3.select("#age_firstCountrySelected").attr("value");
-    
+    firstCountrySelected = d3.select("#age_firstCountrySelected").attr("name");
+   
     var checkSelectedYear = $("#age_yearSelected :selected").val();
     var yearChanged = false;
 
-    if (secondCountrySelect != secondCountry || radioCountry != firstCountry)
-        return age_updateCountryCharts(radioCountry, secondCountrySelect, checkSelectedYear);
+    if (secondCountrySelect != secondCountry || firstCountrySelected != firstCountry)
+        return age_updateCountryCharts(firstCountrySelected, secondCountrySelect, checkSelectedYear);
     
 
     //E' stato cambiato solamente l'anno, sono da aggiornare i due grafici delle activities e delle occupations
@@ -977,6 +975,8 @@ function genderStudyCharts() {
     d3.select("#countriesList").select("#"+nameReplacedFirst).attr("checked", true);
     d3.select("#yearSelected").select("#_"+selectedYear).attr("selected", true);
     d3.select("#firstCountrySelected").attr("value", firstCountry);
+    d3.select("#firstCountrySelected").attr("name", firstCountry);
+
     d3.select("#activitySelected").select("#"+selectedActivity.split(" ")[0]).attr("selected", true);
     d3.select("#occupationSelected").select("#o_1").attr("selected", true);
 
@@ -1365,6 +1365,8 @@ function ageStudyCharts() {
     //inizializzazione della voce con attributo "selected" nei menu select
     d3.select("#age_yearSelected").select("#_"+selectedYear).attr("selected", true);
     d3.select("#age_firstCountrySelected").attr("value", firstCountry);
+    d3.select("#age_firstCountrySelected").attr("name", firstCountry);
+    
     d3.select("#age_activitySelected").select("#"+selectedActivity.split(" ")[0]).attr("selected", true);
     d3.select("#age_occupationSelected").select("#o_1").attr("selected", true);
     d3.select("#age_ageSelected").select("#allAges").attr("selected", true);
@@ -1927,23 +1929,20 @@ function displayValues (isFirstCountryChanged) {
 
         //Visualizzazione del first Country
         if (firstCountry.split(" ").length > 2) {
-            if (firstCountry.split(" ")[0] == "Germany") 
+            if (firstCountry.split(" ")[0] == "Germany") {
                 d3.select("#firstCountrySelected").attr("value", firstCountry.split(" ")[0]);
+                d3.select("#firstCountrySelected").attr("name", firstCountry);
+            }
             else
+            {
                 d3.select("#firstCountrySelected").attr("value", firstCountry.split(" ")[0]+ " " + firstCountry.split(" ")[1]);
+                d3.select("#firstCountrySelected").attr("name", firstCountry);
+            }
         }
-        else
+        else{
             d3.select("#firstCountrySelected").attr("value", firstCountry);
-
-        //Visualizzazione del first Country per age
-        if (firstCountry.split(" ").length > 2) {
-            if (firstCountry.split(" ")[0] == "Germany") 
-                d3.select("#age_firstCountrySelected").attr("value", firstCountry.split(" ")[0]);
-            else
-                d3.select("#age_firstCountrySelected").attr("value", firstCountry.split(" ")[0]+ " " + firstCountry.split(" ")[1]);
+            d3.select("#firstCountrySelected").attr("name", firstCountry);
         }
-        else
-            d3.select("#age_firstCountrySelected").attr("value", firstCountry);
     }
 }
 
@@ -1959,13 +1958,19 @@ function age_displayValues(isFirstCountryChanged) {
 
         //Visualizzazione del first Country
         if (firstCountry.split(" ").length > 2) {
-            if (firstCountry.split(" ")[0] == "Germany") 
+            if (firstCountry.split(" ")[0] == "Germany") {
                 d3.select("#age_firstCountrySelected").attr("value", firstCountry.split(" ")[0]);
-            else
+                d3.select("#age_firstCountrySelected").attr("name", firstCountry);
+            }
+            else{
                 d3.select("#age_firstCountrySelected").attr("value", firstCountry.split(" ")[0]+ " " + firstCountry.split(" ")[1]);
+                d3.select("#age_firstCountrySelected").attr("name", firstCountry);
+            }
         }
-        else
+        else{
             d3.select("#age_firstCountrySelected").attr("value", firstCountry);
+            d3.select("#age_firstCountrySelected").attr("name", firstCountry);
+        }
     }
 }
 
@@ -1984,6 +1989,8 @@ function updateCountryGenderCharts(firstSelectedCountry, secondSelectedCountry, 
     var secondCountryDefault = false;
     var yearChanged = false;
     
+    var radioCountry = $("input[name='countriesList']:checked").val();
+
     //Check se il nuovo paese è lo stesso di quello precedente
     if (firstSelectedCountry != firstCountry) 
         firstCountryChanged = true; 
@@ -1994,7 +2001,9 @@ function updateCountryGenderCharts(firstSelectedCountry, secondSelectedCountry, 
         if (secondSelectedCountry == "default")
             secondCountryDefault = true;
 
-    firstCountry = firstSelectedCountry;
+    if (firstCountry != radioCountry)
+        firstCountry = firstSelectedCountry;
+    
     secondCountry = secondSelectedCountry;
     
     //Se è cambiato il primo paese aggiorno il valore nell'input box
@@ -2066,6 +2075,8 @@ function age_updateCountryCharts(firstSelectedCountry, secondSelectedCountry, ne
     var secondCountryDefault = false;
     var yearChanged = false;
     
+    var radioCountry = $("input[name='countriesList']:checked").val();
+    
     //Check se il nuovo paese è lo stesso di quello precedente
     if (firstSelectedCountry != firstCountry) 
         firstCountryChanged = true; 
@@ -2076,7 +2087,9 @@ function age_updateCountryCharts(firstSelectedCountry, secondSelectedCountry, ne
         if (secondSelectedCountry == "default")
             secondCountryDefault = true;
 
-    firstCountry = firstSelectedCountry;
+    if (firstCountry != radioCountry)
+        firstCountry = firstSelectedCountry;
+
     secondCountry = secondSelectedCountry;
     
     //Se è cambiato il primo paese aggiorno il valore nell'input box
@@ -2860,7 +2873,7 @@ function updateLineChartsGender(firstCountryChanged, secondCountryChanged, secon
     else
         var filtSingleOccDataPerGenderFirst = getDataPerGender(filtDataOccupationFirst, firstCountry, selectedActivity, selectedOccupation, true);
     
-    if (filtSingleOccDataPerGenderFirst[0].length != 4)
+    if (filtSingleOccDataPerGenderFirst != undefined && filtSingleOccDataPerGenderFirst[0].length != 4)
         $("#occLineAlertFirst").addClass('show');
 
     if (secondCountryExists)
@@ -3124,7 +3137,7 @@ function age_updateLineCharts(firstCountryChanged, secondCountryChanged, secondC
     else
         var filtSingleOccDataPerAgesFirst = getDataPerAge(filtDataOccupationFirst, firstCountry, selectedActivity, selectedOccupation);
     
-    if (filtSingleOccDataPerAgesFirst[0].length != 4)
+    if (filtSingleOccDataPerAgesFirst != undefined && filtSingleOccDataPerAgesFirst[0].length != 4)
         $("#age_occLineAlertFirst").addClass('show');
 
 

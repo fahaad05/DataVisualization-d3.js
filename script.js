@@ -4354,6 +4354,9 @@ d3.csv("data/earn_ses_monthly_1_Data.csv", function (error, csv) {
     radioList();
     gender_menu();
     genderStudyCharts();
+
+    //Load study chart as default
+    $('#gender').addClass('show');
     
     age_menu();
     ageStudyCharts();

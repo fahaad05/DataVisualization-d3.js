@@ -30,7 +30,8 @@ var xScale,
     occColor,
     actColor,
     color,
-    moreColor;
+    moreColor,
+    ageColor;
 
 var age_xScale,
     age_yScale,
@@ -707,12 +708,12 @@ function scaling(dataset, secondDataset = null) {
             .tickSize(-h);
     
     xAxisGender = d3.axisBottom()
-            .scale(xScaleMales)
+            .scale(xScale)
             .ticks(ticksNumb)
             .tickSize(-h);
 
     yAxisGender = d3.axisLeft()
-            .scale(yScaleFemales)
+            .scale(yScale)
             .ticks(ticksNumb)
             .tickSize(-h);
 
@@ -740,6 +741,7 @@ function scaling(dataset, secondDataset = null) {
     actColor = d3.scaleOrdinal()
             .domain(activities)
             .range(d3.schemeCategory10);
+
 }
 
 
@@ -756,7 +758,6 @@ function age_scaling(dataset, secondDataset = null) {
         var min_xy = +d3.min(dataset, function(d) { return d.Value;});
         var max_xy = +d3.max(dataset, function(d) { return d.Value;});
         var avg_xy = +(max_xy - min_xy)/dataset.length;
-
     }
     else
     {
@@ -835,6 +836,9 @@ function age_scaling(dataset, secondDataset = null) {
                 .range(d3.schemeCategory10);
         
 
+    ageColor = d3.scaleOrdinal()
+                .domain(ages)
+                .range(d3.schemeCategory10);
 }
 
 
@@ -1055,7 +1059,7 @@ function genderStudyCharts() {
                                     y = c.Value;
                             })
 
-                        return "translate("+ xScaleMales(d.Value) + ","+ yScaleFemales(y) + " )";
+                        return "translate("+ xScale(d.Value) + ","+ yScale(y) + " )";
                     })
                     .style("stroke", function(d,i) { 
                         return actColor(d.NACE_R2);
@@ -1180,7 +1184,7 @@ function genderStudyCharts() {
                                 if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08)
                                     y = c.Value;
                             })
-                        return "translate("+ xScaleMales(d.Value) + ","+ yScaleFemales(y) + " )";
+                        return "translate("+ xScale(d.Value) + ","+ yScale(y) + " )";
                     })
                     .style("stroke", function(d,i) { 
                         return occColor(d.ISCO08)
@@ -1662,7 +1666,7 @@ function ageStudyCharts() {
                 .attr("d", function(d) {
                     return lineGenerator(d);
                 })
-                .style("stroke", function(d,i) { return moreColor(i)})
+                .style("stroke", function(d,i) { return d3.rgb(ageColor(d[0].AGE)).brighter(1)})
                 .style("opacity", lineOpacity)
             
 
@@ -1673,7 +1677,7 @@ function ageStudyCharts() {
             .attr("class", function(d,i){
                 return "firstCountryCircles _"+ages.indexOf(d[0].AGE);
             })
-            .style("fill", function(d,i) { return moreColor(i)})
+            .style("fill", function(d,i) { return d3.rgb(ageColor(d[0].AGE)).brighter(1)})
             .selectAll("circle")
             .data(function(d) { return d}).enter()
             .append("g")
@@ -1699,7 +1703,7 @@ function ageStudyCharts() {
                     return 20 + i*30;
                 })
                 .attr("r", 7)
-                .style("fill", function(d,i) { return moreColor(i)});
+                .style("fill", function(d,i) { return d3.rgb(ageColor(d[0].AGE)).brighter(1)});
 
     age_legendOccLine.selectAll("labels")
             .data(ageDataPerAges)
@@ -1711,7 +1715,7 @@ function ageStudyCharts() {
                 .attr("height", 35)
                 .append("xhtml:body")
                     .style("font", "14px 'Helvetica Neue'")
-                    .style("color", function(d,i){ return moreColor(i)})
+                    .style("color", function(d,i){ return d3.rgb(ageColor(d[0].AGE)).brighter(1)})
                     .html(function(d) {
                         return d[0].GEO+", "+d[0].AGE;
                     });
@@ -2251,7 +2255,7 @@ function updateActivitiesChart(firstCountryChanged, secondCountryChanged, second
                                     y = c.Value;
                             })
             
-                        return "translate("+ w + ","+ yScaleFemales(y) + " )";
+                        return "translate("+ w + ","+ yScale(y) + " )";
                     })
                     .style("stroke", function(d,i) { 
                         return actColor(d.NACE_R2);
@@ -2273,7 +2277,7 @@ function updateActivitiesChart(firstCountryChanged, secondCountryChanged, second
                                 y = c.Value;
                         })
         
-                    return "translate("+ xScaleMales(d.Value) + ","+ yScaleFemales(y) + " )";
+                    return "translate("+ xScale(d.Value) + ","+ yScale(y) + " )";
                 });
         
             selection = actChart.selectAll(".g.actChart.firstCountryPath")
@@ -2306,7 +2310,7 @@ function updateActivitiesChart(firstCountryChanged, secondCountryChanged, second
                                 if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08)
                                     y = c.Value;
                             })
-                        return "translate("+ w + ","+ yScaleFemales(y) + " )";
+                        return "translate("+ w + ","+ yScale(y) + " )";
                     })
                     .style("stroke", function(d,i) { 
                         return actColor(d.NACE_R2);
@@ -2326,7 +2330,7 @@ function updateActivitiesChart(firstCountryChanged, secondCountryChanged, second
                                 y = c.Value;
                         })
         
-                    return "translate("+ xScaleMales(d.Value) + ","+ yScaleFemales(y) + " )";
+                    return "translate("+ xScale(d.Value) + ","+ yScale(y) + " )";
                 });
             selection = actChart.selectAll(".g.actChart.secondCountryPath");
             selection.on("mouseover", function() {
@@ -2604,7 +2608,7 @@ function updateOccupationsChart(firstCountryChanged, secondCountryChanged, secon
                                 if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08)
                                     y = c.Value;
                             })
-                        return "translate("+ w + ","+ yScaleFemales(y) + " )";
+                        return "translate("+ w + ","+ yScale(y) + " )";
                     })
                     .style("stroke", function(d,i) { 
                         return occColor(d.ISCO08)
@@ -2625,7 +2629,7 @@ function updateOccupationsChart(firstCountryChanged, secondCountryChanged, secon
                                 y = c.Value;
                         })
         
-                    return "translate("+ xScaleMales(d.Value) + ","+ yScaleFemales(y) + " )";
+                    return "translate("+ xScale(d.Value) + ","+ yScale(y) + " )";
                 });
             selection = occChart.selectAll(".g.occChart.firstCountryPath");
             selection.on("mouseover", function() {
@@ -2657,7 +2661,7 @@ function updateOccupationsChart(firstCountryChanged, secondCountryChanged, secon
                                 if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08)
                                     y = c.Value;
                             })
-                        return "translate("+ w + ","+ yScaleFemales(y) + " )";
+                        return "translate("+ w + ","+ yScale(y) + " )";
                     })
                     .style("stroke", function(d,i) { 
                         return occColor(d.ISCO08);
@@ -2677,7 +2681,7 @@ function updateOccupationsChart(firstCountryChanged, secondCountryChanged, secon
                                 y = c.Value;
                         })
         
-                    return "translate("+ xScaleMales(d.Value) + ","+ yScaleFemales(y) + " )";
+                    return "translate("+ xScale(d.Value) + ","+ yScale(y) + " )";
                 });
             selection = occChart.selectAll(".g.occChart.secondCountryPath");
             selection.on("mouseover", function() {
@@ -3240,7 +3244,7 @@ function age_updateLineCharts(firstCountryChanged, secondCountryChanged, secondC
                         return lineGenerator(d);
                     })
                     .style("stroke", function(d,i) { 
-                        return moreColor(i);
+                        return d3.rgb(ageColor(d[0].AGE)).brighter(1);
                     })
                     .style("opacity", lineOpacity);
         
@@ -3252,19 +3256,19 @@ function age_updateLineCharts(firstCountryChanged, secondCountryChanged, secondC
                         .attr("class", function(d){
                             return "firstCountryCircles _"+ages.indexOf(d[0].AGE);
                         })
-                        .style("fill", function(d,i) { return moreColor(i)})
+                        .style("fill", function(d,i) { return d3.rgb(ageColor(d[0].AGE)).brighter(1)})
                         .selectAll("circle")
                         .data(function(d) { return d}).enter()
                         .append("g")
-                        .attr("class", "circle")  
-                        .append("circle")
-                        .attr("id", function(d) {
-                            return nameReplacedFirst+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
-                        })
-                        .attr("cx", w)
-                        .attr("cy", function(d) { return age_yScale(d.Value);})
-                        .attr("r", circleRadius)
-                        .style("opacity", circleOpacity);
+                            .attr("class", "circle")  
+                            .append("circle")
+                                .attr("id", function(d) {
+                                    return nameReplacedFirst+"_"+selectedYear+"_"+occupations.indexOf(selectedOccupation);
+                                })
+                                .attr("cx", w)
+                                .attr("cy", function(d) { return age_yScale(d.Value);})
+                                .attr("r", circleRadius)
+                                .style("opacity", circleOpacity);
                 }
                 
                 //FIRST COUNTRY- update circles
@@ -3297,10 +3301,11 @@ function age_updateLineCharts(firstCountryChanged, secondCountryChanged, secondC
                         return lineGenerator(d);
                     })
                     .style("stroke", function(d,i) {
-                        if(selectedAge == "allAges")
-                            return moreColor(i+5);
-                        else
-                            return moreColor(i+2);
+                        // if(selectedAge == "allAges")
+                        //     return ageColor(i+5);
+                        // else
+                        //     return moreColor(i+2);
+                        return d3.rgb(ageColor(d[0].AGE)).darker(1); 
                     })
                     .style("opacity", lineOpacity);
             
@@ -3314,10 +3319,11 @@ function age_updateLineCharts(firstCountryChanged, secondCountryChanged, secondC
                             return "secondCountryCircles _"+ages.indexOf(d[0].AGE);
                         })
                         .style("fill", function(d,i) { 
-                            if(selectedAge == "allAges")
-                                return moreColor(i+5);
-                            else
-                                return moreColor(i+2);
+                            // if(selectedAge == "allAges")
+                            //     return color.darker(ageColor(d[0].AGE));
+                            // else
+                            //     return color.darker(ageColor(d[0].AGE));
+                            return d3.rgb(ageColor(d[0].AGE)).darker(1);
                         })
                         .selectAll("circle")
                         .data(function(d) { return d}).enter()
@@ -3361,9 +3367,9 @@ function age_updateLineCharts(firstCountryChanged, secondCountryChanged, secondC
                         .attr("r", 7)
                         .attr("fill", function(d,i){ 
                             if (d[0].GEO == secondCountry)
-                                return moreColor(i+2);
+                                return d3.rgb(ageColor(d[0].AGE)).darker(1);
                             else
-                                return moreColor(i); });
+                                return d3.rgb(ageColor(d[0].AGE)).brighter(1); });
             
                 age_legendOccLine.selectAll("labels").data(bothCountryData)
                         .enter()
@@ -3376,9 +3382,9 @@ function age_updateLineCharts(firstCountryChanged, secondCountryChanged, secondC
                             .style("font", "14px 'Helvetica Neue'")
                             .style("color", function(d,i){ 
                                 if (d[0].GEO == secondCountry)
-                                    return moreColor(i+2);
+                                    return d3.rgb(ageColor(d[0].AGE)).darker(1);
                                 else
-                                    return moreColor(i);})
+                                    return d3.rgb(ageColor(d[0].AGE)).brighter(1);})
                             .html(function(d) {
                                 if (d.length != 0)
                                     return d[0].GEO+", "+d[0].AGE;
@@ -3434,18 +3440,71 @@ function hoverin (dataset, isFirstCountry, id, firstScaleDataset, secondScaleDat
                         
                         if (d.GEO.split(" ").length > 2) {
                             if (d.GEO.split(" ")[0] == "Germany") 
-                                return d.GEO.toUpperCase().split(" ")[0]+ " Males:"+d.Value+", Females:"+y;
+                                return d.GEO.toUpperCase().split(" ")[0];
                             else
-                                return d.GEO.toUpperCase().split(" ")[0] + " " + d.GEO.toUpperCase().split(" ")[1]+ " Males:"+d.Value+", Females:"+y;
+                                return d.GEO.toUpperCase().split(" ")[0] + " " + d.GEO.toUpperCase().split(" ")[1];
                         }
                         else
-                            return d.GEO.toUpperCase().split(" ")[0]+ " Males:"+d.Value+", Females:"+y;
+                            return d.GEO.toUpperCase().split(" ")[0];
                     
                     })
                     .attr("text-anchor", "middle")
                     .attr("x", (w-margin.top)/2)
                     .attr("y", 20)
                     .attr("font-size", textSize);
+
+                    
+                    //Males
+                    d3.select(this)     
+                    .style("cursor", "pointer")
+                    .append("text")
+                        .attr("fill", function(d) {
+                            return actColor(d.NACE_R2);
+                        })
+                        .attr("class", "text")
+                        .text("M: "+d.Value)
+                        .attr("x", function(d) { return xScale(d.Value) - 60;})
+                        .attr("y", function(d) { 
+                            var y;
+                            dataset[1].forEach(function(c) {
+                                if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08) {
+                                    y = c.Value;
+                                    return;
+                                }
+                            })
+                            return yScale(y) - 20;
+                        })
+                        .attr("dy", "0em");
+                    //Females
+                    d3.select(this)     
+                    .style("cursor", "pointer")
+                    .append("text")
+                        .attr("fill", function(d) {
+                            return actColor(d.NACE_R2);
+                        })
+                        .attr("class", "text")
+                        .text(function(d) {
+                            var y;
+                            dataset[1].forEach(function(c) {
+                                if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08) {
+                                    y = c.Value;
+                                    return;
+                                }
+                            })
+                            return "F: "+y;
+                        })
+                        .attr("x", function(d) { return xScale(d.Value) - 60;})
+                        .attr("y", function(d) { 
+                            var y;
+                            dataset[1].forEach(function(c) {
+                                if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08) {
+                                    y = c.Value;
+                                    return;
+                                }
+                            })
+                            return yScale(y) - 20;
+                        })
+                        .attr("dy", "1em");
                 })
                 .on("mouseout", function(d) {
                 
@@ -3492,12 +3551,12 @@ function hoverin (dataset, isFirstCountry, id, firstScaleDataset, secondScaleDat
                             
                             if (d.GEO.split(" ").length > 2) {
                                 if (d.GEO.split(" ")[0] == "Germany") 
-                                    return d.GEO.toUpperCase().split(" ")[0]+ " Males:"+d.Value+", Females:"+y;
+                                    return d.GEO.toUpperCase().split(" ")[0];
                                 else
-                                    return d.GEO.toUpperCase().split(" ")[0] + " " + d.GEO.toUpperCase().split(" ")[1]+ " Males:"+d.Value+", Females:"+y;
+                                    return d.GEO.toUpperCase().split(" ")[0] + " " + d.GEO.toUpperCase().split(" ")[1];
                             }
                             else
-                                return d.GEO.toUpperCase().split(" ")[0]+ " Males:"+d.Value+", Females:"+y;
+                                return d.GEO.toUpperCase().split(" ")[0];
                         
                         })
                         .attr("text-anchor", "middle")
@@ -3505,7 +3564,61 @@ function hoverin (dataset, isFirstCountry, id, firstScaleDataset, secondScaleDat
                         .attr("y", 20)
                         .attr("font-size", textSize);
 
+                        //Males
+                        d3.select(this)     
+                        .style("cursor", "pointer")
+                        .append("text")
+                            .attr("fill", function(d) {
+                                return occColor(d.ISCO08);
+                            })
+                            .attr("class", "text")
+                            .text("M: "+d.Value)
+                            .attr("x", function(d) { return xScale(d.Value) - 60;})
+                            .attr("y", function(d) { 
+                                var y;
+                                dataset[1].forEach(function(c) {
+                                    if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08) {
+                                        y = c.Value;
+                                        return;
+                                    }
+                                })
+                                return yScale(y) - 20;
+                            })
+                            .attr("dy", "0em");
+                        //Females
+                        d3.select(this)     
+                        .style("cursor", "pointer")
+                        .append("text")
+                            .attr("fill", function(d) {
+                                return occColor(d.ISCO08);
+                            })
+                            .attr("class", "text")
+                            .text(function(d) {
+                                var y;
+                                dataset[1].forEach(function(c) {
+                                    if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08) {
+                                        y = c.Value;
+                                        return;
+                                    }
+                                })
+                                return "F: "+y;
+                            })
+                            .attr("x", function(d) { return xScale(d.Value) - 60;})
+                            .attr("y", function(d) { 
+                                var y;
+                                dataset[1].forEach(function(c) {
+                                    if (c.NACE_R2 == d.NACE_R2 && c.ISCO08 == d.ISCO08) {
+                                        y = c.Value;
+                                        return;
+                                    }
+                                })
+                                return yScale(y) - 20;
+                            })
+                            .attr("dy", "1em");
+
+
                     })
+
                     .on("mouseout", function(d) {
                     
                         d3.select(this)
@@ -3591,10 +3704,10 @@ function hoverin (dataset, isFirstCountry, id, firstScaleDataset, secondScaleDat
                         d3.select(this)     
                         .style("cursor", "pointer")
                         .append("text")
-                        .attr("class", "text")
-                        .text(d.Value)
-                        .attr("x", function(d) { return xTimeScale(d.TIME) + 5;})
-                        .attr("y", function(d) { return yScale(d.Value) - 10;});
+                            .attr("class", "text")
+                            .text(d.Value)
+                            .attr("x", function(d) { return xTimeScale(d.TIME) + 5;})
+                            .attr("y", function(d) { return yScale(d.Value) - 10;});
                     })
                     .on("mouseout", function(d) {
                         d3.select(this)
@@ -3685,28 +3798,40 @@ function age_hoverin(dataset, isFirstCountry, id, firstScaleDataset, secondScale
                         age_scaling(firstScaleDataset, secondScaleDataset);
 
                     d3.select(this)     
-                    .style("cursor", "pointer")
-                    .append("text")
-                    .attr("class", "text")
-                    .attr("fill", function(d) {
-                        return actColor(d.NACE_R2);
-                    })
-                    .text(function(d) {
-        
-                        if (d.GEO.split(" ").length > 2) {
-                            if (d.GEO.split(" ")[0] == "Germany") 
-                                return d.GEO.toUpperCase().split(" ")[0]+ " Value:"+d.Value;
-                            else
-                                return d.GEO.toUpperCase().split(" ")[0] + " " + d.GEO.toUpperCase().split(" ")[1]+ " Value:"+d.Value;
-                        }
-                        else
-                            return d.GEO.toUpperCase().split(" ")[0]+ " Value:"+d.Value;
+                        .style("cursor", "pointer")
+                        .append("text")
+                            .attr("class", "text")
+                            .attr("fill", function(d) {
+                                return actColor(d.NACE_R2);
+                            })
+                            .text(function(d) {
+                
+                                if (d.GEO.split(" ").length > 2) {
+                                    if (d.GEO.split(" ")[0] == "Germany") 
+                                        return d.GEO.toUpperCase().split(" ")[0];
+                                    else
+                                        return d.GEO.toUpperCase().split(" ")[0] + " " + d.GEO.toUpperCase().split(" ")[1];
+                                }
+                                else
+                                    return d.GEO.toUpperCase().split(" ")[0];
+                            
+                            })
+                            .attr("text-anchor", "middle")
+                            .attr("x", (w-margin.top)/2)
+                            .attr("y", 20)
+                            .attr("font-size", textSize);
+
                     
-                    })
-                    .attr("text-anchor", "middle")
-                    .attr("x", (w-margin.top)/2)
-                    .attr("y", 20)
-                    .attr("font-size", textSize);
+                    d3.select(this)     
+                            .style("cursor", "pointer")
+                            .append("text")
+                            .attr("class", "text")
+                            .attr("fill", function(d) {
+                                return actColor(d.NACE_R2);
+                            })
+                            .text(d.Value)
+                            .attr("x", function(d) { return age_xScale(d.AGE) + 5;})
+                            .attr("y", function(d) { return age_yScale(d.Value) - 10;});
                 })
                 .on("mouseout", function(d) {
                 
@@ -3719,7 +3844,7 @@ function age_hoverin(dataset, isFirstCountry, id, firstScaleDataset, secondScale
         
     }
 
-    
+
     //hover scatterplot occupations
     if (id == 2) 
     {
@@ -3738,28 +3863,39 @@ function age_hoverin(dataset, isFirstCountry, id, firstScaleDataset, secondScale
                             age_scaling(firstScaleDataset, secondScaleDataset);
 
                         d3.select(this)     
-                        .style("cursor", "pointer")
-                        .append("text")
-                        .attr("class", "text")
-                        .attr("fill", function(d) {
-                            return occColor(d.ISCO08);
-                        })
-                        .text(function(d) {
-                          
-                            if (d.GEO.split(" ").length > 2) {
-                                if (d.GEO.split(" ")[0] == "Germany") 
-                                    return d.GEO.toUpperCase().split(" ")[0]+ " Value: "+d.Value;
-                                else
-                                    return d.GEO.toUpperCase().split(" ")[0] + " " + d.GEO.toUpperCase().split(" ")[1]+ " Value: "+d.Value;
-                            }
-                            else
-                                return d.GEO.toUpperCase().split(" ")[0]+ " Value: "+d.Value;
-                        
-                        })
-                        .attr("text-anchor", "middle")
-                        .attr("x", (w-margin.top)/2)
-                        .attr("y", 20)
-                        .attr("font-size", textSize);
+                            .style("cursor", "pointer")
+                            .append("text")
+                                .attr("class", "text")
+                                .attr("fill", function(d) {
+                                    return occColor(d.ISCO08);
+                                })
+                                .text(function(d) {
+                                
+                                    if (d.GEO.split(" ").length > 2) {
+                                        if (d.GEO.split(" ")[0] == "Germany") 
+                                            return d.GEO.toUpperCase().split(" ")[0];
+                                        else
+                                            return d.GEO.toUpperCase().split(" ")[0] + " " + d.GEO.toUpperCase().split(" ")[1];
+                                    }
+                                    else
+                                        return d.GEO.toUpperCase().split(" ")[0];
+                                
+                                })
+                                .attr("text-anchor", "middle")
+                                .attr("x", (w-margin.top)/2)
+                                .attr("y", 20)
+                                .attr("font-size", textSize);
+
+                        d3.select(this)     
+                                    .style("cursor", "pointer")
+                                    .append("text")
+                                    .attr("class", "text")
+                                    .attr("fill", function(d) {
+                                        return occColor(d.ISCO08);
+                                    })
+                                    .text(d.Value)
+                                    .attr("x", function(d) { return age_xScale(d.AGE) + 5;})
+                                    .attr("y", function(d) { return age_yScale(d.Value) - 10;});
 
                     })
                     .on("mouseout", function(d) {
@@ -3798,7 +3934,12 @@ function age_hoverin(dataset, isFirstCountry, id, firstScaleDataset, secondScale
                 
                 age_occLineChart.append("text")
                 .attr("class", "title-text")
-                .style("fill", moreColor(c))        
+                .style("fill", function() {
+                    if (isFirstCountry)
+                        return d3.rgb(ageColor(d[0].AGE)).brighter(1);
+                    else
+                        return d3.rgb(ageColor(d[0].AGE)).darker(1);
+                })        
                 .text(d[0].GEO+", "+d[0].AGE)
                 .attr("text-anchor", "middle")
                 .attr("x", (w-margin.top)/2)

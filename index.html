@@ -7,6 +7,7 @@
       
     <!-- D3 Library -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/d3-color.v1.min.js"></script>
     <!-- Stili personali -->
     <link rel="stylesheet" href="styles.css">
     <!-- Bootstrap CSS Library-->
@@ -63,13 +64,14 @@
                                 <div id="activitiesAlert" class="d-flex flex-column"></div>
                             </div>
 
+                            <!-- ACTIVITIES -->
                             <form class="form-inline" id = "activitiesMenu">
                                 <label class="my-1 mr-2 mt-2" for="activitySelected"><b>Activity Selected: </b></label>
-                                <select class="custom-select my-1 mr-sm-2 mt-2" id="activitySelected">
+                                <select class="custom-select my-1 mr-sm-2 mt-2" id="activitySelected" onchange="activityRedirectUpdate()">
                                 </select>
-                                <button type="button" class="btn btn-primary my-1 mt-2" onclick="activityRedirectUpdate()">Submit</button>
-
+                                <!-- <button type="button" class="btn btn-primary my-1 mt-2" onclick="activityRedirectUpdate()">Submit</button> -->
                             </form>
+
                             <div class="d-flex flex-row border-bottom">
                                 <div id="occ_scatt"></div>
                                 <div id="occupationAlert" class="d-flex flex-column"></div>
@@ -77,9 +79,9 @@
 
                             <form class="form-inline" id = "occupationsMenu">
                                 <label class="my-1 mr-2 mt-2" for="occupationSelected"><b>Occupation Selected: </b></label>
-                                <select class="custom-select my-1 mr-sm-2 mt-2" id="occupationSelected">
+                                <select class="custom-select my-1 mr-sm-2 mt-2" id="occupationSelected" onchange="occupationRedirectUpdate()">
                                 </select>
-                                <button type="button" class="btn btn-primary my-1 mt-2" onclick="occupationRedirectUpdate()">Submit</button>
+                                <!-- <button type="button" class="btn btn-primary my-1 mt-2" onclick="occupationRedirectUpdate()">Submit</button> -->
                                 
                             </form>
 
@@ -116,9 +118,9 @@
 
                             <form class="form-inline" id = "age_activitiesMenu">
                                 <label class="my-1 mr-2 mt-2" for="age_activitySelected"><b>Activity Selected: </b></label>
-                                <select class="custom-select my-1 mr-sm-2 mt-2" id="age_activitySelected">
+                                <select class="custom-select my-1 mr-sm-2 mt-2" id="age_activitySelected" onchange="age_activityRedirectUpdate()">
                                 </select>
-                                <button type="button" class="btn btn-primary my-1 mt-2" onclick="age_activityRedirectUpdate()">Submit</button>
+                                <!-- <button type="button" class="btn btn-primary my-1 mt-2" onclick="age_activityRedirectUpdate()">Submit</button> -->
 
                             </form>
                             <div class="d-flex flex-row border-bottom">
@@ -131,10 +133,10 @@
                                 <select class="custom-select my-1 mr-sm-2 mt-2" id="age_occupationSelected">
                                 </select>
                                 <label class="my-1 mr-2 mt-2" for="age_ageSelected"><b>Age Selected: </b></label>
-                                <select class="custom-select my-1 mr-sm-2 mt-2" id="age_ageSelected">
+                                <select class="custom-select my-1 mr-sm-2 mt-2" id="age_ageSelected" onchange="age_occupationRedirectUpdate()">
                                     <option value="allAges" selected>All...</option>
                                 </select>
-                                <button type="button" class="btn btn-primary my-1 mt-2" onclick="age_occupationRedirectUpdate()">Submit</button>
+                                <!-- <button type="button" class="btn btn-primary my-1 mt-2" onclick="age_occupationRedirectUpdate()">Submit</button> -->
                                 
                             </form>
                             <div class="d-flex flex-row">
